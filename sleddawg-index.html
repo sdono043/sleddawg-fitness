@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleddawg Fitness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --surface3: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --text: #f0ede8;
+    --text2: #888880;
+    --text3: #555550;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #47e8c8;
+    --red: #ff4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; }
+  body { min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 100;
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 1.4rem; letter-spacing: 0.05em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+  nav .mono { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text3); }
+  .connect-btn {
+    background: var(--accent); color: #0a0a0a;
+    border: none; cursor: pointer; padding: 0.5rem 1.25rem;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+    transition: opacity 0.15s;
+  }
+  .connect-btn:hover { opacity: 0.85; }
+  .connected-badge {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--accent3);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* MAIN */
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  /* CONNECT SCREEN */
+  #connect-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 60vh; text-align: center; gap: 1.5rem;
+  }
+  #connect-screen h1 {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+    font-size: 4rem; line-height: 1; letter-spacing: -0.02em;
+  }
+  #connect-screen h1 span { color: var(--accent); }
+  #connect-screen p { color: var(--text2); max-width: 420px; line-height: 1.6; }
+  .strava-btn {
+    display: inline-flex; align-items: center; gap: 0.75rem;
+    background: #fc4c02; color: white; border: none; cursor: pointer;
+    padding: 0.875rem 2rem; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1rem; letter-spacing: 0.05em;
+    text-transform: uppercase; transition: opacity 0.15s; text-decoration: none;
+  }
+  .strava-btn:hover { opacity: 0.9; }
+  .strava-logo { width: 20px; height: 20px; }
+
+  /* DASHBOARD */
+  #dashboard { display: none; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    border: 1px solid var(--border); margin-bottom: 2rem;
+  }
+  .stat-box {
+    background: var(--surface); padding: 1.25rem 1.5rem;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .stat-value {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 2rem; color: var(--text); line-height: 1;
+  }
+  .stat-unit { font-size: 1rem; color: var(--text2); font-weight: 400; }
+
+  /* GRID LAYOUT */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+  /* PANELS */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); padding: 1.25rem;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text2);
+  }
+  .panel-badge {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    background: var(--surface3); color: var(--text3); padding: 0.2rem 0.5rem;
+  }
+
+  /* CALENDAR */
+  .calendar-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  }
+  .cal-header {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3);
+    text-align: center; padding: 0.25rem 0; text-transform: uppercase;
+  }
+  .cal-day {
+    aspect-ratio: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; position: relative;
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text3);
+    background: var(--surface2); cursor: default; transition: background 0.1s;
+  }
+  .cal-day.empty { background: transparent; }
+  .cal-day.today { color: var(--text); border: 1px solid var(--border2); }
+  .cal-day.has-activity { background: var(--surface3); color: var(--text); cursor: pointer; }
+  .cal-day.has-activity:hover { background: var(--border2); }
+  .cal-day .activity-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    position: absolute; bottom: 4px;
+  }
+  .cal-day.run .activity-dot { background: var(--accent); }
+  .cal-day.walk .activity-dot { background: var(--accent3); }
+  .cal-day.ride .activity-dot { background: var(--accent2); }
+  .cal-day.has-activity .day-num { font-size: 0.75rem; color: var(--text); }
+
+  /* ACTIVITY LIST */
+  .activity-item {
+    display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item:hover { background: var(--surface2); margin: 0 -1.25rem; padding: 0.75rem 1.25rem; }
+  .act-type-badge {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem; min-width: 42px; text-align: center;
+  }
+  .act-type-badge.Run { background: rgba(232,255,71,0.15); color: var(--accent); }
+  .act-type-badge.Walk { background: rgba(71,232,200,0.15); color: var(--accent3); }
+  .act-type-badge.Ride { background: rgba(255,107,53,0.15); color: var(--accent2); }
+  .act-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
+  .act-meta { display: flex; gap: 1rem; }
+  .act-stat { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text2); }
+  .act-stat strong { color: var(--text); font-weight: 400; }
+
+  /* MAP */
+  #map { height: 280px; background: var(--surface2); }
+  .leaflet-container { background: #111 !important; }
+
+  /* AI PANEL */
+  .ai-panel { margin-bottom: 1.5rem; }
+  #ai-output {
+    font-size: 0.875rem; line-height: 1.7; color: var(--text2);
+    min-height: 80px;
+  }
+  #ai-output .loading {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text3);
+  }
+  .spinner {
+    width: 12px; height: 12px; border: 1.5px solid var(--border2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ai-workout-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+  .ai-workout-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 0.875rem 1rem;
+  }
+  .ai-workout-card .day-label {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--accent); margin-bottom: 0.25rem;
+  }
+  .ai-workout-card .workout-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem; }
+  .ai-workout-card .workout-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.5; }
+  .gen-btn {
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    padding: 0.5rem 1rem; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.8rem; text-transform: uppercase;
+    letter-spacing: 0.08em; cursor: pointer; transition: all 0.15s; margin-top: 1rem;
+  }
+  .gen-btn:hover { background: var(--accent); color: var(--bg); }
+  .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* PACE CHART */
+  #pace-chart { height: 120px; position: relative; }
+  .chart-bars {
+    display: flex; align-items: flex-end; gap: 4px; height: 100%; padding-top: 10px;
+  }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+  .chart-bar {
+    width: 100%; background: var(--surface3); position: relative; min-height: 4px;
+    transition: background 0.2s;
+  }
+  .chart-bar:hover { background: var(--accent); }
+  .chart-bar.run { background: rgba(232,255,71,0.4); }
+  .chart-bar.run:hover { background: var(--accent); }
+  .chart-bar.walk { background: rgba(71,232,200,0.3); }
+  .chart-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3); }
+
+  /* DETAIL MODAL */
+  #detail-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  #detail-modal.open { display: flex; }
+  .modal-inner {
+    background: var(--surface); border: 1px solid var(--border2);
+    width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
+    padding: 1.5rem;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .modal-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.5rem; }
+  .modal-close {
+    background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 1.5rem; line-height: 1; padding: 0;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); margin-bottom: 1rem; }
+  .modal-stat { background: var(--surface2); padding: 0.875rem 1rem; }
+  .modal-stat .label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3); text-transform: uppercase; margin-bottom: 0.25rem; }
+  .modal-stat .value { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.25rem; }
+  #modal-map { height: 220px; margin-bottom: 1rem; }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 2rem; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.75rem; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    nav { padding: 1rem; }
+    main { padding: 1rem; }
+    #connect-screen h1 { font-size: 2.5rem; }
+  }
+
+  /* TOKEN ENTRY */
+  #token-entry { display: none; flex-direction: column; gap: 0.75rem; max-width: 480px; }
+  #token-entry p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+  #token-entry input {
+    background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+    padding: 0.625rem 0.875rem; font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    width: 100%; outline: none;
+  }
+  #token-entry input:focus { border-color: var(--accent); }
+  .token-btn {
+    background: var(--accent); color: var(--bg); border: none; cursor: pointer;
+    padding: 0.625rem 1.5rem; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+    align-self: flex-start; transition: opacity 0.15s;
+  }
+  .token-btn:hover { opacity: 0.85; }
+  .or-divider { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.7rem; }
+  .disconnect-btn {
+    background: none; border: 1px solid var(--border2); color: var(--text3);
+    padding: 0.4rem 0.875rem; font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .disconnect-btn:hover { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">SLEDD<span>AWG</span></div>
+  <span class="mono" id="nav-date"></span>
+  <div id="nav-right">
+    <button class="connect-btn" onclick="showTokenEntry()">Connect Strava</button>
+  </div>
+</nav>
+
+<main>
+  <!-- CONNECT SCREEN -->
+  <div id="connect-screen">
+    <div>
+      <h1>YOUR RUNS.<br><span>YOUR DATA.</span></h1>
+    </div>
+    <p>Connect your Strava account to visualize your training history, track progress, and get AI-powered workout suggestions.</p>
+    <div id="token-entry">
+      <p>Paste your Strava access token below. Get one by running the OAuth flow or using the curl command from setup.</p>
+      <input type="text" id="token-input" placeholder="Your Strava access token..." />
+      <button class="token-btn" onclick="saveTokenAndLoad()">Load My Data</button>
+    </div>
+    <span class="or-divider">— or —</span>
+    <button class="connect-btn" onclick="startStravaOAuth()">Connect via Strava OAuth</button>
+    <p style="font-size:0.75rem; color:var(--text3); font-family:'DM Mono',monospace;">Already connected? <span style="color:var(--accent);cursor:pointer" onclick="loadFromStorage()">Load saved session →</span></p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-label">Total activities</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total distance</div>
+        <div class="stat-value" id="stat-dist">—<span class="stat-unit"> mi</span></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total elevation</div>
+        <div class="stat-value" id="stat-elev">—<span class="stat-unit"> ft</span></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg pace</div>
+        <div class="stat-value" id="stat-pace">—<span class="stat-unit"> /mi</span></div>
+      </div>
+    </div>
+
+    <!-- AI WORKOUT PLAN -->
+    <div class="panel ai-panel">
+      <div class="panel-header">
+        <span class="panel-title">AI Workout Plan</span>
+        <span class="panel-badge">Claude</span>
+      </div>
+      <div id="ai-output"><p style="color:var(--text3);font-family:'DM Mono',monospace;font-size:0.75rem">Click generate to get a personalized training plan based on your recent activity.</p></div>
+      <button class="gen-btn" id="gen-btn" onclick="generateWorkoutPlan()">Generate This Week's Plan ↗</button>
+    </div>
+
+    <!-- CALENDAR + RECENT -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="cal-month-label">This Month</span>
+          <div style="display:flex;gap:0.5rem">
+            <button onclick="changeMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;padding:0.2rem 0.5rem;font-size:0.8rem">‹</button>
+            <button onclick="changeMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;padding:0.2rem 0.5rem;font-size:0.8rem">›</button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+          <div class="cal-header">Su</div><div class="cal-header">Mo</div>
+          <div class="cal-header">Tu</div><div class="cal-header">We</div>
+          <div class="cal-header">Th</div><div class="cal-header">Fr</div>
+          <div class="cal-header">Sa</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Pace trend</span>
+          <span class="panel-badge">Last 10 runs</span>
+        </div>
+        <div id="pace-chart"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY LIST + MAP -->
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Recent activities</span>
+          <span class="panel-badge" id="activity-count">—</span>
+        </div>
+        <div id="activity-list"></div>
+        <button class="gen-btn" id="load-more-btn" onclick="loadMoreActivities()" style="margin-top:1rem">Load more →</button>
+      </div>
+
+      <div class="panel" style="padding:0;overflow:hidden">
+        <div class="panel-header" style="padding:1rem 1.25rem 0.75rem">
+          <span class="panel-title">Latest route</span>
+          <span class="panel-badge" id="map-activity-name">—</span>
+        </div>
+        <div id="map"></div>
+        <div style="padding:0.75rem 1.25rem;display:flex;gap:1rem">
+          <div><div class="stat-label">Distance</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem" id="map-dist">—</div></div>
+          <div><div class="stat-label">Elevation</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem" id="map-elev">—</div></div>
+          <div><div class="stat-label">Pace</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem" id="map-pace">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding-top:1rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+      <button class="disconnect-btn" onclick="disconnect()">Disconnect Strava</button>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Activity</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);margin-top:0.25rem" id="modal-date"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-stats">
+      <div class="modal-stat"><div class="label">Distance</div><div class="value" id="md-dist">—</div></div>
+      <div class="modal-stat"><div class="label">Pace</div><div class="value" id="md-pace">—</div></div>
+      <div class="modal-stat"><div class="label">Duration</div><div class="value" id="md-time">—</div></div>
+      <div class="modal-stat"><div class="label">Elevation</div><div class="value" id="md-elev">—</div></div>
+      <div class="modal-stat"><div class="label">Avg watts</div><div class="value" id="md-watts">—</div></div>
+      <div class="modal-stat"><div class="label">Type</div><div class="value" id="md-type">—</div></div>
+    </div>
+    <div id="modal-map"></div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = ''; // PUT YOUR STRAVA CLIENT ID HERE
+const REDIRECT_URI = 'https://sdono043.github.io/sleddawg-fitness';
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+
+let allActivities = [];
+let displayedCount = 10;
+let currentMonth = new Date();
+let mapInstance = null;
+let modalMapInstance = null;
+
+// ── UTILS ──────────────────────────────────────────────────
+function metersToMiles(m) { return (m * 0.000621371); }
+function metersToFeet(m) { return Math.round(m * 3.28084); }
+function secsToPace(secs, meters) {
+  if (!meters || meters < 10) return '—';
+  const secsPerMile = secs / metersToMiles(meters);
+  const mins = Math.floor(secsPerMile / 60);
+  const s = Math.round(secsPerMile % 60).toString().padStart(2, '0');
+  return `${mins}:${s}`;
+}
+function formatDuration(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m ${s}s`;
+}
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── POLYLINE DECODER ──────────────────────────────────────
+function decodePoly(str) {
+  if (!str) return [];
+  let idx = 0, lat = 0, lng = 0, coords = [];
+  while (idx < str.length) {
+    let b, shift = 0, result = 0;
+    do { b = str.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : result >> 1;
+    shift = 0; result = 0;
+    do { b = str.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : result >> 1;
+    coords.push([lat / 1e5, lng / 1e5]);
+  }
+  return coords;
+}
+
+// ── AUTH ──────────────────────────────────────────────────
+function showTokenEntry() {
+  document.getElementById('token-entry').style.display = 'flex';
+}
+
+function saveTokenAndLoad() {
+  const token = document.getElementById('token-input').value.trim();
+  if (!token) return;
+  localStorage.setItem('strava_access_token', token);
+  loadDashboard(token);
+}
+
+function startStravaOAuth() {
+  if (!CLIENT_ID) { alert('Add your Strava Client ID to the config in index.html'); return; }
+  const url = `https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
+  window.location.href = url;
+}
+
+function loadFromStorage() {
+  const token = localStorage.getItem('strava_access_token');
+  if (token) loadDashboard(token);
+  else { showTokenEntry(); }
+}
+
+function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (code) {
+    // Show message — user needs to exchange code for token manually
+    document.getElementById('connect-screen').innerHTML = `
+      <div style="max-width:500px;text-align:left">
+        <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2rem;margin-bottom:1rem">One more step</h1>
+        <p style="color:var(--text2);margin-bottom:1rem;line-height:1.6">Copy this authorization code and exchange it for an access token using the curl command:</p>
+        <div style="background:var(--surface2);padding:1rem;font-family:'DM Mono',monospace;font-size:0.7rem;word-break:break-all;color:var(--accent);margin-bottom:1rem">${code}</div>
+        <p style="color:var(--text3);font-family:'DM Mono',monospace;font-size:0.7rem">Run in terminal: curl -X POST https://www.strava.com/oauth/token -d client_id=YOUR_ID -d client_secret=YOUR_SECRET -d code=${code} -d grant_type=authorization_code</p>
+        <p style="margin-top:1rem;color:var(--text2);font-size:0.85rem">Then paste the access_token you get back here:</p>
+        <div id="token-entry" style="display:flex;margin-top:0.75rem">
+          <input type="text" id="token-input" placeholder="Paste access_token here..." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.75rem;flex:1;outline:none"/>
+          <button class="token-btn" onclick="saveTokenAndLoad()" style="margin:0;white-space:nowrap">Load →</button>
+        </div>
+      </div>`;
+    window.history.replaceState({}, document.title, REDIRECT_URI);
+  }
+}
+
+function disconnect() {
+  localStorage.removeItem('strava_access_token');
+  localStorage.removeItem('strava_refresh_token');
+  localStorage.removeItem('strava_expires_at');
+  window.location.reload();
+}
+
+// ── STRAVA API ────────────────────────────────────────────
+async function fetchActivities(token, page = 1, perPage = 30) {
+  const r = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=${perPage}&page=${page}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!r.ok) throw new Error('Strava API error: ' + r.status);
+  return r.json();
+}
+
+async function fetchAthlete(token) {
+  const r = await fetch('https://www.strava.com/api/v3/athlete', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return r.json();
+}
+
+// ── LOAD DASHBOARD ────────────────────────────────────────
+async function loadDashboard(token) {
+  document.getElementById('connect-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('nav-right').innerHTML = `<div class="connected-badge"><div class="dot"></div><span>Strava connected</span></div>`;
+
+  try {
+    const acts = await fetchActivities(token, 1, 80);
+    allActivities = acts;
+    renderDashboard();
+  } catch (e) {
+    document.getElementById('dashboard').innerHTML = `<div class="empty-state">Error loading data: ${e.message}<br><br><button class="gen-btn" onclick="disconnect()">Disconnect & retry</button></div>`;
+  }
+}
+
+function renderDashboard() {
+  renderStats();
+  renderCalendar();
+  renderActivityList();
+  renderPaceChart();
+  renderMap(allActivities[0]);
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function renderStats() {
+  const runs = allActivities.filter(a => a.type === 'Run');
+  const totalDist = allActivities.reduce((s, a) => s + a.distance, 0);
+  const totalElev = allActivities.reduce((s, a) => s + (a.total_elevation_gain || 0), 0);
+  const avgPaceSecs = runs.length ? runs.reduce((s, a) => s + (a.moving_time / metersToMiles(a.distance)), 0) / runs.length : 0;
+
+  document.getElementById('stat-total').textContent = allActivities.length;
+  document.getElementById('stat-dist').innerHTML = `${metersToMiles(totalDist).toFixed(1)}<span class="stat-unit"> mi</span>`;
+  document.getElementById('stat-elev').innerHTML = `${metersToFeet(totalElev).toLocaleString()}<span class="stat-unit"> ft</span>`;
+  const pm = Math.floor(avgPaceSecs / 60), ps = Math.round(avgPaceSecs % 60).toString().padStart(2,'0');
+  document.getElementById('stat-pace').innerHTML = `${pm}:${ps}<span class="stat-unit"> /mi</span>`;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────
+function changeMonth(dir) {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + dir, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const year = currentMonth.getFullYear(), month = currentMonth.getMonth();
+  const label = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  document.getElementById('cal-month-label').textContent = label;
+
+  const actByDay = {};
+  allActivities.forEach(a => {
+    const d = new Date(a.start_date_local);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const key = d.getDate();
+      if (!actByDay[key]) actByDay[key] = [];
+      actByDay[key].push(a);
+    }
+  });
+
+  const grid = document.getElementById('calendar-grid');
+  const headers = grid.querySelectorAll('.cal-header');
+  grid.innerHTML = '';
+  headers.forEach(h => grid.appendChild(h.cloneNode(true)));
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    const acts = actByDay[d] || [];
+    const isToday = today.getDate() === d && today.getMonth() === month && today.getFullYear() === year;
+    const type = acts[0]?.type?.toLowerCase() || '';
+    el.className = `cal-day${acts.length ? ' has-activity ' + type : ''}${isToday ? ' today' : ''}`;
+    el.innerHTML = `<span class="day-num">${d}</span>${acts.length ? `<div class="activity-dot"></div>` : ''}`;
+    if (acts.length) {
+      el.title = acts.map(a => a.name).join(', ');
+      el.onclick = () => openModal(acts[0]);
+    }
+    grid.appendChild(el);
+  }
+}
+
+// ── ACTIVITY LIST ─────────────────────────────────────────
+function renderActivityList() {
+  const list = document.getElementById('activity-list');
+  const shown = allActivities.slice(0, displayedCount);
+  document.getElementById('activity-count').textContent = `${allActivities.length} total`;
+  list.innerHTML = shown.map(a => {
+    const dist = metersToMiles(a.distance).toFixed(2);
+    const pace = secsToPace(a.moving_time, a.distance);
+    const elev = metersToFeet(a.total_elevation_gain || 0);
+    return `<div class="activity-item" onclick="openModal(${JSON.stringify(a).replace(/"/g,'&quot;')})">
+      <span class="act-type-badge ${a.type}">${a.type}</span>
+      <span class="act-name">${a.name}</span>
+      <div class="act-meta">
+        <span class="act-stat"><strong>${dist}</strong> mi</span>
+        <span class="act-stat"><strong>${pace}</strong> /mi</span>
+        <span class="act-stat"><strong>${elev}</strong> ft</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('load-more-btn').style.display = displayedCount >= allActivities.length ? 'none' : 'block';
+}
+
+function loadMoreActivities() {
+  displayedCount += 10;
+  renderActivityList();
+}
+
+// ── PACE CHART ────────────────────────────────────────────
+function renderPaceChart() {
+  const runs = allActivities.filter(a => a.type === 'Run' && a.distance > 500).slice(0, 10).reverse();
+  if (!runs.length) return;
+
+  const paces = runs.map(a => a.moving_time / metersToMiles(a.distance));
+  const maxPace = Math.max(...paces), minPace = Math.min(...paces);
+
+  const chart = document.getElementById('pace-chart');
+  chart.innerHTML = `<div class="chart-bars">${runs.map((a, i) => {
+    const pace = paces[i];
+    const heightPct = maxPace === minPace ? 50 : 20 + 70 * (1 - (pace - minPace) / (maxPace - minPace));
+    const paceStr = `${Math.floor(pace/60)}:${Math.round(pace%60).toString().padStart(2,'0')}`;
+    const date = new Date(a.start_date_local).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="chart-bar-wrap" title="${paceStr}/mi on ${date}">
+      <div class="chart-bar run" style="height:${heightPct}%"></div>
+      <div class="chart-label">${new Date(a.start_date_local).getDate()}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── MAP ───────────────────────────────────────────────────
+function renderMap(activity) {
+  if (!activity) return;
+  const coords = decodePoly(activity.map?.summary_polyline);
+  if (!coords.length) return;
+
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+  mapInstance = L.map('map', { zoomControl: false, attributionControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
+  const line = L.polyline(coords, { color: '#e8ff47', weight: 2.5, opacity: 0.9 }).addTo(mapInstance);
+  mapInstance.fitBounds(line.getBounds(), { padding: [20, 20] });
+
+  document.getElementById('map-activity-name').textContent = activity.name;
+  document.getElementById('map-dist').textContent = metersToMiles(activity.distance).toFixed(2) + ' mi';
+  document.getElementById('map-elev').textContent = metersToFeet(activity.total_elevation_gain || 0) + ' ft';
+  document.getElementById('map-pace').textContent = secsToPace(activity.moving_time, activity.distance) + ' /mi';
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(a) {
+  document.getElementById('modal-title').textContent = a.name;
+  document.getElementById('modal-date').textContent = formatDate(a.start_date_local);
+  document.getElementById('md-dist').textContent = metersToMiles(a.distance).toFixed(2) + ' mi';
+  document.getElementById('md-pace').textContent = secsToPace(a.moving_time, a.distance) + '/mi';
+  document.getElementById('md-time').textContent = formatDuration(a.moving_time);
+  document.getElementById('md-elev').textContent = metersToFeet(a.total_elevation_gain || 0) + ' ft';
+  document.getElementById('md-watts').textContent = a.average_watts ? Math.round(a.average_watts) + 'w' : '—';
+  document.getElementById('md-type').textContent = a.type;
+
+  document.getElementById('detail-modal').classList.add('open');
+
+  setTimeout(() => {
+    const coords = decodePoly(a.map?.summary_polyline);
+    if (modalMapInstance) { modalMapInstance.remove(); modalMapInstance = null; }
+    if (coords.length) {
+      modalMapInstance = L.map('modal-map', { zoomControl: true, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(modalMapInstance);
+      const line = L.polyline(coords, { color: '#e8ff47', weight: 3, opacity: 0.9 }).addTo(modalMapInstance);
+      modalMapInstance.fitBounds(line.getBounds(), { padding: [20, 20] });
+    }
+  }, 100);
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  if (modalMapInstance) { modalMapInstance.remove(); modalMapInstance = null; }
+}
+
+document.getElementById('detail-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('detail-modal')) closeModal();
+});
+
+// ── AI WORKOUT PLAN ───────────────────────────────────────
+async function generateWorkoutPlan() {
+  const btn = document.getElementById('gen-btn');
+  const output = document.getElementById('ai-output');
+  btn.disabled = true;
+  output.innerHTML = `<div class="loading"><div class="spinner"></div><span>Analyzing your training data...</span></div>`;
+
+  const recentRuns = allActivities.filter(a => a.type === 'Run').slice(0, 10);
+  const summary = recentRuns.map(a => ({
+    date: a.start_date_local.split('T')[0],
+    name: a.name,
+    distanceMi: metersToMiles(a.distance).toFixed(2),
+    pacePer_mi: secsToPace(a.moving_time, a.distance),
+    elevationFt: metersToFeet(a.total_elevation_gain || 0),
+    durationMin: Math.round(a.moving_time / 60)
+  }));
+
+  const totalWeeklyMi = recentRuns.slice(0, 5).reduce((s, a) => s + metersToMiles(a.distance), 0).toFixed(1);
+
+  try {
+    const claudeKey = localStorage.getItem('claude_api_key');
+    if (!claudeKey) {
+      output.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3)">
+        No Claude API key found. Run this in your browser console once:<br><br>
+        <span style="color:var(--accent)">localStorage.setItem('claude_api_key', 'your-key-here')</span><br><br>
+        Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent3)">console.anthropic.com</a>
+      </div>`;
+      btn.disabled = false;
+      return;
+    }
+
+    const resp = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are a running coach. Analyze the athlete's recent Strava data and create a practical 7-day training plan. 
+Return ONLY valid JSON in this exact format, no other text:
+{
+  "weeklyMileage": "X miles",
+  "focus": "one sentence training focus",
+  "days": [
+    {"day": "Monday", "type": "Rest|Easy|Tempo|Long|Intervals|Cross-train", "name": "workout name", "description": "2 sentences max", "distance": "X miles or Rest"},
+    ... (all 7 days)
+  ]
+}`,
+        messages: [{
+          role: 'user',
+          content: `My recent runs: ${JSON.stringify(summary)}. Recent weekly mileage avg: ${totalWeeklyMi} miles. I'm based in Richmond, VA. Create a smart training plan for next week that progresses appropriately.`
+        }]
+      })
+    });
+
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const plan = JSON.parse(clean);
+
+    const typeColors = { Rest: 'var(--text3)', Easy: 'var(--accent3)', Tempo: 'var(--accent2)', Long: 'var(--accent)', Intervals: '#ff4488', 'Cross-train': '#aa88ff' };
+
+    output.innerHTML = `
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:0.75rem">
+        <strong style="color:var(--accent)">${plan.weeklyMileage}</strong> target · ${plan.focus}
+      </p>
+      <div class="ai-workout-cards">
+        ${plan.days.map(d => `
+          <div class="ai-workout-card">
+            <div class="day-label" style="color:${typeColors[d.type]||'var(--accent)'}">${d.day} · ${d.type}</div>
+            <div class="workout-name">${d.name} <span style="color:var(--text3);font-size:0.75rem">— ${d.distance}</span></div>
+            <div class="workout-desc">${d.description}</div>
+          </div>`).join('')}
+      </div>`;
+  } catch (e) {
+    output.innerHTML = `<p style="color:var(--text3);font-family:'DM Mono',monospace;font-size:0.75rem">
+      Could not generate plan. To enable AI suggestions, add your Claude API key to the fetch headers in index.html.<br><br>
+      Error: ${e.message}
+    </p>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Regenerate Plan ↗';
+}
+
+// ── INIT ──────────────────────────────────────────────────
+document.getElementById('nav-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+const params = new URLSearchParams(window.location.search);
+if (params.get('code')) {
+  handleOAuthCallback();
+} else {
+  const savedToken = localStorage.getItem('strava_access_token');
+  if (savedToken) loadDashboard(savedToken);
+}
+</script>
+</body>
+</html>
