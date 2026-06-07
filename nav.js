@@ -106,9 +106,15 @@ function saveWeeklyGoal(miles) {
 }
 
 // ── TRAINING PLAN ─────────────────────────────────────────
-const TRAINING_PLAN_START = new Date('2026-06-07T00:00:00');
+const TRAINING_PLAN_START = new Date('2026-05-03T00:00:00'); // week of May 4
 const TRAINING_PLAN = [
-  // BASE (W1–4)
+  // PRE-BASE (W1–5, May 3 – Jun 6)
+  {phase:'base',          miles:25,  key:'Baseline week',      workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 10',    focus:'First structured week. All runs conversational pace.'}},
+  {phase:'base',          miles:28,  key:'Build volume',       workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Build weekly volume. Focus on time on feet, not pace.'}},
+  {phase:'base',          miles:22,  key:'Recovery week',      workouts:{Sun:'Rest',Mon:'Easy 4',Tue:'Rest',Wed:'Easy 4',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 10',    focus:'First cutback week. Consolidate the base you\'ve built.'}},
+  {phase:'base',          miles:25,  key:'Resume building',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Resume building. Practice nutrition on long runs.'}},
+  {phase:'base',          miles:28,  key:'Bridge to plan',     workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Final pre-plan week. Dial in your routine.'}},
+  // BASE (W6–9, Jun 7 – Jun 27)
   {phase:'base',          miles:25,  key:'3×Easy + LSD 10',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 10',    focus:'Establish aerobic base. Every run conversational pace.'}},
   {phase:'base',          miles:28,  key:'3×Easy + LSD 12',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Add miles gradually. Track nutrition on runs over 8 miles.'}},
   {phase:'base',          miles:30,  key:'B2B Intro + Tempo',  workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Tempo 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',   focus:'First tempo. 80% effort, not race pace.'}},

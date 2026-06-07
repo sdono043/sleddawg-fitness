@@ -216,7 +216,7 @@
         <span class="panel-title">Mileage History</span>
         <span class="panel-badge">Last 8 weeks</span>
       </div>
-      <div id="history-chart" style="height:100px;display:flex;align-items:flex-end;gap:6px;padding-top:8px"></div>
+      <div id="history-chart" style="height:150px;display:flex;align-items:flex-end;gap:6px;padding-top:8px"></div>
     </div>
 
   </div>
@@ -468,17 +468,22 @@ function renderHistoryChart() {
   const maxMi = Math.max(...weeks.map(w => Math.max(w.miles, w.target)), 1);
   const chart = document.getElementById('history-chart');
   chart.innerHTML = weeks.map((w, i) => {
-    const heightPct = maxMi > 0 ? Math.max((w.miles / maxMi) * 100, 2) : 2;
-    const targetPct = maxMi > 0 ? (w.target / maxMi) * 100 : 0;
+    const BAR_MAX_PCT = 72;
+    const heightPct = maxMi > 0 && w.miles > 0 ? Math.max((w.miles / maxMi) * BAR_MAX_PCT, 3) : 0;
+    const targetPct = maxMi > 0 ? (w.target / maxMi) * BAR_MAX_PCT : 0;
     const isCurrentWeek = i === 7 + weekOffset;
     const color = w.miles >= w.target ? 'var(--accent)' : w.miles >= w.target * 0.6 ? '#ffbb00' : w.miles > 0 ? 'var(--red)' : 'var(--surface3)';
+    const textColor = isCurrentWeek ? 'var(--accent)' : color;
     const label = w.start.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
-      <div style="flex:1;width:100%;display:flex;align-items:flex-end;position:relative">
-        <div style="width:100%;background:${isCurrentWeek ? 'var(--accent)' : color};height:${heightPct}%;min-height:4px" title="${w.miles.toFixed(1)} mi / ${w.target} planned"></div>
-        <div style="position:absolute;left:0;right:0;bottom:${targetPct}%;height:1px;background:rgba(232,255,71,0.35)" title="${w.target} mi planned"></div>
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%">
+      <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;position:relative">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:500;color:${w.miles>0?textColor:'transparent'};text-align:center;margin-bottom:2px">${w.miles>0?w.miles.toFixed(1):''}</div>
+        <div style="width:100%;background:${isCurrentWeek?'var(--accent)':color};height:${heightPct}%;position:relative">
+          <div style="position:absolute;left:-1px;right:-1px;bottom:${heightPct>0?Math.min((targetPct/heightPct)*100,150):0}%;height:2px;background:rgba(232,255,71,0.6);display:${targetPct>0?'block':'none'}"></div>
+        </div>
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${isCurrentWeek?'var(--accent)':'var(--text3)'};">${label}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${isCurrentWeek?'var(--accent)':'var(--text3)'};margin-top:3px">${label}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--text3)">${w.target}mi</div>
     </div>`;
   }).join('');
 }

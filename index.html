@@ -315,15 +315,15 @@
     <div>
       <h1>YOUR RUNS.<br><span>YOUR DATA.</span></h1>
     </div>
-    <p>Connect your Strava account to visualize your training history, track progress, and get AI-powered workout suggestions.</p>
-    <div id="token-entry">
-      <p>Paste your Strava access token below. Get one by running the OAuth flow or using the curl command from setup.</p>
-      <input type="text" id="token-input" placeholder="Your Strava access token..." />
-      <button class="token-btn" onclick="saveTokenAndLoad()">Load My Data</button>
+    <p>Connect your Strava account to visualize your training, track progress toward Greensprings 24, and get AI-powered workout suggestions.</p>
+    <div id="setup-fields" style="display:none;width:100%;max-width:340px;margin:0.5rem 0">
+      <p style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);margin-bottom:0.875rem;line-height:1.5">One-time setup. Get these from <span style="color:var(--accent)">strava.com/settings/api</span> — stored only in your browser.</p>
+      <input type="text" id="setup-client-id" placeholder="Client ID (e.g. 250737)" style="display:block;width:100%;margin-bottom:0.5rem;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.85rem;outline:none"/>
+      <input type="password" id="setup-client-secret" placeholder="Client Secret" style="display:block;width:100%;margin-bottom:0.875rem;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.85rem;outline:none"/>
     </div>
-    <span class="or-divider">— or —</span>
-    <button class="connect-btn" onclick="startStravaOAuth()">Connect via Strava OAuth</button>
-    <p style="font-size:0.75rem; color:var(--text3); font-family:'DM Mono',monospace;">Already connected? <span style="color:var(--accent);cursor:pointer" onclick="loadFromStorage()">Load saved session →</span></p>
+    <button class="connect-btn" id="connect-oauth-btn" onclick="startStravaOAuth()">Connect with Strava →</button>
+    <p style="font-size:0.75rem;color:var(--text3);font-family:'DM Mono',monospace;margin-top:0.875rem">Already connected? <span style="color:var(--accent);cursor:pointer" onclick="loadFromStorage()">Load saved session →</span></p>
+    <div id="connect-status" style="margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3)"></div>
   </div>
 
   <!-- DASHBOARD -->
@@ -488,64 +488,94 @@ function decodePoly(str) {
 }
 
 // ── AUTH ──────────────────────────────────────────────────
-function showTokenEntry() {
-  document.getElementById('token-entry').style.display = 'flex';
-}
-
-function saveTokenAndLoad() {
-  const input = document.getElementById('token-input').value.trim();
-  if (!input) return;
-  // Accept either a plain access_token string or the full curl JSON response
-  try {
-    const json = JSON.parse(input);
-    if (json.access_token) {
-      localStorage.setItem('strava_access_token', json.access_token);
-      if (json.refresh_token) localStorage.setItem('strava_refresh_token', json.refresh_token);
-      if (json.expires_at)    localStorage.setItem('strava_expires_at',    String(json.expires_at));
-      if (json.client_id)     localStorage.setItem('strava_client_id',     String(json.client_id));
-    }
-  } catch {
-    localStorage.setItem('strava_access_token', input);
-  }
-  loadDashboard(localStorage.getItem('strava_access_token'));
+function initConnectScreen() {
+  const hasCredentials = localStorage.getItem('strava_client_id') && localStorage.getItem('strava_client_secret');
+  document.getElementById('setup-fields').style.display = hasCredentials ? 'none' : 'block';
 }
 
 function startStravaOAuth() {
-  if (!CLIENT_ID) { alert('Add your Strava Client ID to the config in index.html'); return; }
-  const url = `https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
-  window.location.href = url;
+  let clientId     = localStorage.getItem('strava_client_id');
+  let clientSecret = localStorage.getItem('strava_client_secret');
+  const idInput  = document.getElementById('setup-client-id');
+  const secInput = document.getElementById('setup-client-secret');
+  if (idInput?.value.trim())  clientId     = idInput.value.trim();
+  if (secInput?.value.trim()) clientSecret = secInput.value.trim();
+  if (!clientId || !clientSecret) {
+    document.getElementById('setup-fields').style.display = 'block';
+    document.getElementById('connect-status').textContent = 'Enter your Client ID and Client Secret above.';
+    return;
+  }
+  localStorage.setItem('strava_client_id',     clientId);
+  localStorage.setItem('strava_client_secret', clientSecret);
+  window.location.href = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${REDIRECT_URI}&approval_prompt=force&scope=read,activity:read_all`;
 }
 
 function loadFromStorage() {
   const token = localStorage.getItem('strava_access_token');
   if (token) loadDashboard(token);
-  else { showTokenEntry(); }
+  else initConnectScreen();
 }
 
-function handleOAuthCallback() {
+async function handleOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  if (code) {
+  if (!code) return;
+  window.history.replaceState({}, document.title, REDIRECT_URI);
+
+  const clientId     = localStorage.getItem('strava_client_id');
+  const clientSecret = localStorage.getItem('strava_client_secret');
+
+  if (!clientId || !clientSecret) {
     document.getElementById('connect-screen').innerHTML = `
-      <div style="max-width:500px;text-align:left">
-        <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2rem;margin-bottom:1rem">One more step</h1>
-        <p style="color:var(--text2);margin-bottom:1rem;line-height:1.6">Copy this authorization code and exchange it for an access token using the curl command:</p>
-        <div style="background:var(--surface2);padding:1rem;font-family:'DM Mono',monospace;font-size:0.7rem;word-break:break-all;color:var(--accent);margin-bottom:1rem">${code}</div>
-        <p style="color:var(--text3);font-family:'DM Mono',monospace;font-size:0.7rem">Run in terminal: curl -X POST https://www.strava.com/oauth/token -d client_id=YOUR_ID -d client_secret=YOUR_SECRET -d code=${code} -d grant_type=authorization_code</p>
-        <p style="margin-top:1rem;color:var(--text2);font-size:0.85rem">Then paste the access_token you get back here:</p>
-        <div id="token-entry" style="display:flex;margin-top:0.75rem">
-          <input type="text" id="token-input" placeholder="Paste access_token here..." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.75rem;flex:1;outline:none"/>
-          <button class="token-btn" onclick="saveTokenAndLoad()" style="margin:0;white-space:nowrap">Load →</button>
-        </div>
+      <div style="max-width:360px">
+        <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2rem;margin-bottom:1rem">Almost there</h1>
+        <p style="color:var(--text2);margin-bottom:1rem;font-size:0.85rem">Enter your Strava API credentials to finish connecting:</p>
+        <input type="text" id="cb-id" placeholder="Client ID" style="display:block;width:100%;margin-bottom:0.5rem;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.85rem;outline:none"/>
+        <input type="password" id="cb-sec" placeholder="Client Secret" style="display:block;width:100%;margin-bottom:1rem;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.625rem 0.875rem;font-family:'DM Mono',monospace;font-size:0.85rem;outline:none"/>
+        <button class="connect-btn" onclick="completeExchange('${code}')">Finish connecting →</button>
+        <div id="cb-status" style="margin-top:0.75rem;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)"></div>
       </div>`;
-    window.history.replaceState({}, document.title, REDIRECT_URI);
+    return;
+  }
+  await completeExchange(code, clientId, clientSecret);
+}
+
+async function completeExchange(code, clientId, clientSecret) {
+  clientId     = clientId     || document.getElementById('cb-id')?.value.trim();
+  clientSecret = clientSecret || document.getElementById('cb-sec')?.value.trim();
+  if (!clientId || !clientSecret) {
+    const s = document.getElementById('cb-status');
+    if (s) s.textContent = 'Please enter both fields.';
+    return;
+  }
+  localStorage.setItem('strava_client_id',     clientId);
+  localStorage.setItem('strava_client_secret', clientSecret);
+
+  const statusEl = document.getElementById('cb-status') || document.getElementById('connect-status');
+  if (statusEl) statusEl.textContent = 'Connecting…';
+  document.getElementById('connect-oauth-btn') && (document.getElementById('connect-oauth-btn').disabled = true);
+
+  try {
+    const resp = await fetch('https://www.strava.com/api/v3/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code, grant_type: 'authorization_code' })
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.access_token) throw new Error(data.message || 'Token exchange failed');
+    localStorage.setItem('strava_access_token',  data.access_token);
+    localStorage.setItem('strava_refresh_token', data.refresh_token);
+    localStorage.setItem('strava_expires_at',    String(data.expires_at));
+    loadDashboard(data.access_token);
+  } catch(e) {
+    const s = document.getElementById('cb-status') || document.getElementById('connect-status');
+    if (s) s.textContent = 'Error: ' + e.message + ' — try connecting again.';
+    document.getElementById('connect-oauth-btn') && (document.getElementById('connect-oauth-btn').disabled = false);
   }
 }
 
 function disconnect() {
-  localStorage.removeItem('strava_access_token');
-  localStorage.removeItem('strava_refresh_token');
-  localStorage.removeItem('strava_expires_at');
+  ['strava_access_token','strava_refresh_token','strava_expires_at'].forEach(k => localStorage.removeItem(k));
   window.location.reload();
 }
 
@@ -842,6 +872,7 @@ if (params.get('code')) {
 } else {
   const savedToken = localStorage.getItem('strava_access_token');
   if (savedToken) loadDashboard(savedToken);
+  else initConnectScreen();
 }
 </script>
 </body>
