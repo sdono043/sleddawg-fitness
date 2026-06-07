@@ -1,68 +1,47 @@
 # Sleddawg Fitness
 
-A single-page Strava training dashboard with AI-powered workout planning, hosted on GitHub Pages.
+Personal training dashboard and HIIT workout generator, hosted on GitHub Pages.
 
-## What it does
+**Live site: [sdono043.github.io/sleddawg-fitness](https://sdono043.github.io/sleddawg-fitness)**
 
-- Connects to your Strava account and displays your activity history
-- Shows a stats summary (total activities, distance, elevation, avg pace)
-- Monthly calendar view with activity dots
-- Pace trend chart across your last 10 runs
-- Route map for your latest activity (and any activity via click)
-- Generates a personalized 7-day training plan using the Claude API
+## Features
 
-## Setup
+- **Dashboard** — Connects to Strava, shows activity stats, pace trend chart, calendar, and route map. AI-generates a personalized 7-day training plan.
+- **Planner** — 25-week training plan targeting Greensprings 24 (100 miles, Oct 24 2026). AI-tunes the current week based on recent Strava activity and weather.
+- **Scorecard** — Weekly plan vs. actual mileage breakdown with streak tracking.
+- **HIIT Generator** — AI-generates CrossFit-style workouts based on time available and focus area (upper/lower/full body). Tracks workout history and avoids repeating recent sessions.
 
-### 1. Strava API credentials
+## For friends
+
+The **HIIT Generator** works for anyone — just visit the site and hit Generate. No account or setup needed.
+
+The **Strava features** work if you connect your own Strava account via the Dashboard. The training planner targets a specific race, so it's most useful as-is for Sam.
+
+## Tech
+
+- Static HTML/CSS/JS — no build step, no framework
+- Strava API for activity data
+- Claude API (Anthropic) for AI workout generation, routed through a Cloudflare Worker proxy
+- Hosted on GitHub Pages
+
+## Development setup (for contributors)
+
+### Strava credentials
 
 1. Go to [strava.com/settings/api](https://www.strava.com/settings/api) and create an app
-2. Note your **Client ID** and **Client Secret**
-3. Set the **Authorization Callback Domain** to `sdono043.github.io`
+2. Set the **Authorization Callback Domain** to `sdono043.github.io`
+3. Update `CLIENT_ID` in `index.html` with your Client ID
 
-### 2. Add your Client ID to the code
+### Local config
 
-In `index.html`, find this line near the top of the `<script>` block and fill in your Client ID:
-
-```js
-const CLIENT_ID = ''; // PUT YOUR STRAVA CLIENT ID HERE
-```
-
-### 3. Connect to Strava
-
-There are two ways to authenticate:
-
-**Option A — Paste an access token directly**
-1. Get a token via the Strava API (e.g. using the curl OAuth flow)
-2. Click "Connect Strava" on the site and paste the token
-
-**Option B — OAuth flow**
-1. Click "Connect via Strava OAuth"
-2. Authorize the app on Strava
-3. You'll be redirected back with an authorization code
-4. Run the curl command shown on screen to exchange the code for a token:
-   ```
-   curl -X POST https://www.strava.com/oauth/token \
-     -d client_id=YOUR_ID \
-     -d client_secret=YOUR_SECRET \
-     -d code=THE_CODE \
-     -d grant_type=authorization_code
-   ```
-5. Paste the `access_token` from the response into the input field
-
-The token is saved to `localStorage` so you only need to do this once per browser.
-
-### 4. Claude API key (for AI workout plans)
-
-The workout plan feature calls the Claude API directly from the browser. To enable it, run this once in your browser's developer console:
+Create a `local-config.js` file (gitignored) to set credentials without editing source files:
 
 ```js
-localStorage.setItem('claude_api_key', 'your-key-here')
+localStorage.setItem('strava_client_id', 'YOUR_ID');
+localStorage.setItem('strava_client_secret', 'YOUR_SECRET');
+localStorage.setItem('strava_access_token', 'YOUR_TOKEN');
 ```
 
-Get a key at [console.anthropic.com](https://console.anthropic.com).
+### AI features
 
-## Deployment
-
-The site is a static single file — no build step needed. It's deployed via GitHub Pages from the `main` branch.
-
-Live site: [sdono043.github.io/sleddawg-fitness](https://sdono043.github.io/sleddawg-fitness)
+AI calls go through a Cloudflare Worker proxy that holds the Anthropic API key — no key needed in the browser. To run your own instance, deploy a Worker that forwards requests to `api.anthropic.com/v1/messages` and update the `WORKER_URL` constant in `hiit.html` and the fetch URLs in `index.html` / `planner.html`.
