@@ -817,8 +817,13 @@ function deleteWorkout() {
 
 // ── AI TUNE THIS WEEK ─────────────────────────────────────
 async function generateWeekWithAI() {
-  const claudeKey = localStorage.getItem('claude_api_key');
-  if (!claudeKey) { alert('Add claude_api_key to localStorage first'); return; }
+  let claudeKey = localStorage.getItem('claude_api_key');
+  if (!claudeKey) {
+    claudeKey = prompt('Enter your Anthropic API key (saved locally in your browser):');
+    if (!claudeKey) return;
+    localStorage.setItem('claude_api_key', claudeKey.trim());
+    claudeKey = claudeKey.trim();
+  }
   const curIdx = currentWeekIdx();
   const week = PLAN[curIdx];
   const token = localStorage.getItem('strava_access_token');
@@ -844,7 +849,7 @@ async function generateWeekWithAI() {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:800,
+        model:'claude-sonnet-4-6', max_tokens:800,
         system:`You are an ultra marathon coach specializing in 24-hour loop races.
 Return ONLY valid JSON, no other text:
 {"workouts":[{"date":"YYYY-MM-DD","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night|Rest","name":"name","dist":"X","pace":"M:SS","notes":"brief coaching note"}]}`,
