@@ -215,6 +215,10 @@
       <div style="display:flex;gap:0.75rem;align-items:center">
         <span class="panel-badge">Race: Oct 24, 2026</span>
         <button class="btn-ghost" style="padding:0.35rem 0.875rem;font-size:0.75rem" onclick="lockAllWeeks()" id="lock-all-btn">⬇ Lock Full Plan</button>
+        <div id="claude-key-row" style="display:none;align-items:center;gap:0.5rem">
+          <input type="password" id="claude-key-input" placeholder="Anthropic API key" style="background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:0.3rem 0.625rem;font-family:'DM Mono',monospace;font-size:0.7rem;width:200px;outline:none"/>
+          <button class="btn-ghost" style="padding:0.3rem 0.75rem;font-size:0.7rem" onclick="saveClaudeKey()">Save</button>
+        </div>
         <button class="btn-primary" style="padding:0.35rem 0.875rem;font-size:0.75rem" onclick="generateWeekWithAI()">✦ AI Tune This Week</button>
       </div>
     </div>
@@ -816,13 +820,21 @@ function deleteWorkout() {
 }
 
 // ── AI TUNE THIS WEEK ─────────────────────────────────────
+function saveClaudeKey() {
+  const val = document.getElementById('claude-key-input').value.trim();
+  if (!val) return;
+  localStorage.setItem('claude_api_key', val);
+  document.getElementById('claude-key-row').style.display = 'none';
+  generateWeekWithAI();
+}
+
 async function generateWeekWithAI() {
   let claudeKey = localStorage.getItem('claude_api_key');
   if (!claudeKey) {
-    claudeKey = prompt('Enter your Anthropic API key (saved locally in your browser):');
-    if (!claudeKey) return;
-    localStorage.setItem('claude_api_key', claudeKey.trim());
-    claudeKey = claudeKey.trim();
+    const row = document.getElementById('claude-key-row');
+    row.style.display = 'flex';
+    document.getElementById('claude-key-input').focus();
+    return;
   }
   const curIdx = currentWeekIdx();
   const week = PLAN[curIdx];
