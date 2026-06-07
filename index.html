@@ -9,6 +9,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
+  .nav-links{display:flex;gap:0;}
+  .nav-link{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1rem;color:var(--text3);transition:color 0.15s;text-decoration:none;}
+  .nav-link:hover{color:var(--text);}
+  .nav-link.active{color:var(--accent);}
+</style>
+<style>
   :root {
     --bg: #0a0a0a;
     --surface: #111111;
@@ -292,8 +298,12 @@
 <body>
 
 <nav>
-  <div class="logo">SLEDD<span>AWG</span></div>
-  <span class="mono" id="nav-date"></span>
+  <a href="index.html" class="logo">SLEDD<span>AWG</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Dashboard</a>
+    <a href="planner.html" class="nav-link">Planner</a>
+    <a href="scorecard.html" class="nav-link">Scorecard</a>
+  </div>
   <div id="nav-right">
     <button class="connect-btn" onclick="showTokenEntry()">Connect Strava</button>
   </div>
@@ -428,8 +438,9 @@
   </div>
 </div>
 
+<script src="local-config.js" onerror="void 0"></script>
 <script>
-const CLIENT_ID = ''; // PUT YOUR STRAVA CLIENT ID HERE
+const CLIENT_ID = '250737';
 const REDIRECT_URI = 'https://sdono043.github.io/sleddawg-fitness';
 const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 
@@ -482,10 +493,21 @@ function showTokenEntry() {
 }
 
 function saveTokenAndLoad() {
-  const token = document.getElementById('token-input').value.trim();
-  if (!token) return;
-  localStorage.setItem('strava_access_token', token);
-  loadDashboard(token);
+  const input = document.getElementById('token-input').value.trim();
+  if (!input) return;
+  // Accept either a plain access_token string or the full curl JSON response
+  try {
+    const json = JSON.parse(input);
+    if (json.access_token) {
+      localStorage.setItem('strava_access_token', json.access_token);
+      if (json.refresh_token) localStorage.setItem('strava_refresh_token', json.refresh_token);
+      if (json.expires_at)    localStorage.setItem('strava_expires_at',    String(json.expires_at));
+      if (json.client_id)     localStorage.setItem('strava_client_id',     String(json.client_id));
+    }
+  } catch {
+    localStorage.setItem('strava_access_token', input);
+  }
+  loadDashboard(localStorage.getItem('strava_access_token'));
 }
 
 function startStravaOAuth() {
@@ -504,7 +526,6 @@ function handleOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if (code) {
-    // Show message — user needs to exchange code for token manually
     document.getElementById('connect-screen').innerHTML = `
       <div style="max-width:500px;text-align:left">
         <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2rem;margin-bottom:1rem">One more step</h1>
@@ -767,7 +788,7 @@ async function generateWorkoutPlan() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
-        system: `You are a running coach. Analyze the athlete's recent Strava data and create a practical 7-day training plan. 
+        system: `You are a running coach. Analyze the athlete's recent Strava data and create a practical 7-day training plan.
 Return ONLY valid JSON in this exact format, no other text:
 {
   "weeklyMileage": "X miles",
@@ -815,8 +836,6 @@ Return ONLY valid JSON in this exact format, no other text:
 }
 
 // ── INIT ──────────────────────────────────────────────────
-document.getElementById('nav-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
 const params = new URLSearchParams(window.location.search);
 if (params.get('code')) {
   handleOAuthCallback();

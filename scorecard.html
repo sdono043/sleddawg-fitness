@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scorecard · Sleddawg Fitness</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;--border:#2a2a2a;--border2:#333333;--text:#f0ede8;--text2:#888880;--text3:#555550;--accent:#e8ff47;--accent2:#ff6b35;--accent3:#47e8c8;--red:#ff4444;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;}
+  body{min-height:100vh;}
+  a{text-decoration:none;color:inherit;}
+
+  nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100;}
+  .logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:0.05em;}
+  .logo span{color:var(--accent);}
+  .nav-links{display:flex;gap:0;}
+  .nav-link{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1rem;color:var(--text3);transition:color 0.15s;}
+  .nav-link:hover{color:var(--text);}
+  .nav-link.active{color:var(--accent);}
+  .connected-badge{display:flex;align-items:center;gap:0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent3);}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  main{max-width:1200px;margin:0 auto;padding:2rem;}
+
+  .page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;gap:1rem;flex-wrap:wrap;}
+  .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.5rem;line-height:1;}
+  .page-title span{color:var(--accent);}
+  .page-sub{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);margin-top:0.25rem;}
+
+  /* WEEK NAV */
+  .week-nav{display:flex;align-items:center;gap:0.75rem;}
+  .week-nav button{background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;padding:0.4rem 0.75rem;font-size:0.85rem;transition:all 0.15s;}
+  .week-nav button:hover{border-color:var(--accent);color:var(--accent);}
+  .week-label{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text2);min-width:160px;text-align:center;}
+
+  /* GOAL SETTING */
+  .goal-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);}
+  .goal-row label{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);text-transform:uppercase;}
+  .goal-input{background:var(--surface3);border:1px solid var(--border2);color:var(--accent);padding:0.4rem 0.625rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;width:80px;text-align:center;outline:none;}
+  .goal-input:focus{border-color:var(--accent);}
+  .goal-unit{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text2);}
+  .goal-save{background:var(--accent);color:var(--bg);border:none;cursor:pointer;padding:0.4rem 1rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;}
+
+  /* BIG SCORE */
+  .score-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border);margin-bottom:1.5rem;}
+  .score-box{background:var(--surface);padding:1.5rem;position:relative;overflow:hidden;}
+  .score-box::after{content:'';position:absolute;bottom:0;left:0;height:3px;background:var(--border2);width:100%;}
+  .score-box.green::after{background:var(--accent);}
+  .score-box.yellow::after{background:#ffbb00;}
+  .score-box.red::after{background:var(--red);}
+  .score-box.neutral::after{background:var(--text3);}
+  .sb-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;}
+  .sb-value{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2.5rem;line-height:1;margin-bottom:0.25rem;}
+  .sb-sub{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);}
+  .sb-status{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;margin-top:0.5rem;}
+  .sb-status.green{color:var(--accent);}
+  .sb-status.yellow{color:#ffbb00;}
+  .sb-status.red{color:var(--red);}
+  .sb-status.neutral{color:var(--text3);}
+
+  /* PROGRESS BAR */
+  .progress-track{height:6px;background:var(--surface3);border-radius:0;margin-top:0.75rem;overflow:hidden;}
+  .progress-fill{height:100%;transition:width 0.5s ease;}
+  .progress-fill.green{background:var(--accent);}
+  .progress-fill.yellow{background:#ffbb00;}
+  .progress-fill.red{background:var(--red);}
+
+  /* PANEL */
+  .panel{background:var(--surface);border:1px solid var(--border);padding:1.25rem;margin-bottom:1.5rem;}
+  .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
+  .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);}
+  .panel-badge{font-family:'DM Mono',monospace;font-size:0.65rem;background:var(--surface3);color:var(--text3);padding:0.2rem 0.5rem;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+
+  /* DAY-BY-DAY TABLE */
+  .day-row{display:grid;grid-template-columns:90px 60px 1fr 1fr 80px;gap:0.75rem;align-items:center;padding:0.625rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;}
+  .day-row:last-child{border-bottom:none;}
+  .day-row.header{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding-bottom:0.5rem;}
+  .dr-day{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);}
+  .dr-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;text-transform:uppercase;padding:0.15rem 0.4rem;text-align:center;}
+  .dr-type.Run{background:rgba(232,255,71,0.15);color:var(--accent);}
+  .dr-type.Swim{background:rgba(71,232,200,0.15);color:var(--accent3);}
+  .dr-type.Ride{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .dr-type.Walk,.dr-type.Other{background:rgba(255,255,255,0.08);color:var(--text2);}
+  .dr-type.Strength{background:rgba(170,136,255,0.15);color:#aa88ff;}
+  .dr-type.Rest,.dr-type.—{background:transparent;color:var(--text3);}
+  .dr-planned{color:var(--text3);font-family:'DM Mono',monospace;font-size:0.7rem;}
+  .dr-actual{font-family:'DM Mono',monospace;font-size:0.7rem;}
+  .dr-actual.beat{color:var(--accent);}
+  .dr-actual.close{color:var(--accent3);}
+  .dr-actual.miss{color:var(--red);}
+  .dr-actual.rest{color:var(--text3);}
+  .dr-status{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;}
+  .dr-status.beat{color:var(--accent);}
+  .dr-status.close{color:var(--accent3);}
+  .dr-status.miss{color:var(--red);}
+  .dr-status.rest{color:var(--text3);}
+  .dr-status.pending{color:var(--text3);}
+
+  /* HR ZONES */
+  .hr-zone-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.625rem;}
+  .hz-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);width:60px;}
+  .hz-range{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text2);width:80px;}
+  .hz-bar-track{flex:1;height:8px;background:var(--surface3);}
+  .hz-bar{height:100%;transition:width 0.5s;}
+  .hz-pct{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text2);width:36px;text-align:right;}
+  .hr-note{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);padding:1rem;text-align:center;}
+
+  /* STREAK */
+  .streak-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:0.5rem;}
+  .streak-dot{width:12px;height:12px;border-radius:2px;}
+  .streak-dot.active{background:var(--accent);}
+  .streak-dot.rest{background:var(--surface3);}
+  .streak-dot.missed{background:rgba(255,68,68,0.3);}
+
+  .loading{display:flex;align-items:center;gap:0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3);padding:1rem;}
+  .spinner{width:12px;height:12px;border:1.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .empty-state{text-align:center;padding:2rem;color:var(--text3);font-family:'DM Mono',monospace;font-size:0.75rem;}
+
+  @media(max-width:768px){
+    .score-hero{grid-template-columns:1fr 1fr;}
+    .grid-2{grid-template-columns:1fr;}
+    .day-row{grid-template-columns:70px 50px 1fr 60px;}
+    nav{padding:1rem;}
+    main{padding:1rem;}
+  }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+
+<main>
+  <div class="page-header">
+    <div>
+      <div class="page-title">WEEKLY <span>SCORECARD</span></div>
+      <div class="page-sub" id="week-range-label">Loading...</div>
+    </div>
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">‹ Prev</button>
+      <span class="week-label" id="week-nav-label">This Week</span>
+      <button onclick="changeWeek(1)">Next ›</button>
+    </div>
+  </div>
+
+  <!-- GOAL SETTING -->
+  <div class="goal-row">
+    <label>Weekly Goal</label>
+    <input type="number" class="goal-input" id="goal-input" value="20" min="1" max="200" step="0.5" />
+    <span class="goal-unit">miles / week</span>
+    <button class="goal-save" onclick="updateGoal()">Save</button>
+    <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)" id="goal-note"></span>
+  </div>
+
+  <!-- LOADING -->
+  <div id="sc-loading" class="loading"><div class="spinner"></div><span>Loading your Strava data...</span></div>
+
+  <!-- SCORECARD CONTENT -->
+  <div id="sc-content" style="display:none">
+
+    <!-- HERO STATS -->
+    <div class="score-hero" id="hero-stats"></div>
+
+    <!-- DAY BY DAY + STREAK -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Day by Day</span>
+          <span class="panel-badge">Plan vs Actual</span>
+        </div>
+        <div id="day-table"></div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:1.5rem">
+          <div class="panel-header">
+            <span class="panel-title">Activity Streak</span>
+            <span class="panel-badge" id="streak-count">0 days</span>
+          </div>
+          <div id="streak-dots" class="streak-dots"></div>
+          <div style="margin-top:0.75rem;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
+            <span style="color:var(--accent)">■</span> Active &nbsp;
+            <span style="color:var(--surface3)">■</span> Rest &nbsp;
+            <span style="color:rgba(255,68,68,0.3)">■</span> Missed planned
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Heart Rate Zones</span>
+            <span class="panel-badge">This week</span>
+          </div>
+          <div id="hr-zones"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY HISTORY CHART -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Mileage History</span>
+        <span class="panel-badge">Last 8 weeks</span>
+      </div>
+      <div id="history-chart" style="height:100px;display:flex;align-items:flex-end;gap:6px;padding-top:8px"></div>
+    </div>
+
+  </div>
+</main>
+
+<script src="local-config.js" onerror="void 0"></script>
+<script src="nav.js"></script>
+<script>
+let allActivities = [];
+let weekOffset = 0;
+
+// ── WEEK HELPERS ──────────────────────────────────────────
+function getWeekBounds(offset = 0) {
+  const now = new Date();
+  const start = getWeekStart(now);
+  start.setDate(start.getDate() + offset * 7);
+  const end = new Date(start); end.setDate(end.getDate() + 6); end.setHours(23,59,59);
+  return { start, end };
+}
+
+function activitiesInWeek(acts, start, end) {
+  return acts.filter(a => {
+    const d = new Date(a.start_date_local);
+    return d >= start && d <= end;
+  });
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────
+async function loadScorecard() {
+  const token = localStorage.getItem('strava_access_token');
+  if (!token) {
+    document.getElementById('sc-loading').innerHTML = `<div class="empty-state">Connect Strava on the <a href="index.html" style="color:var(--accent)">Dashboard</a> to see your scorecard.</div>`;
+    return;
+  }
+
+  try {
+    allActivities = await fetchActivities(token, 100);
+    document.getElementById('goal-input').value = getWeeklyGoal();
+    renderScorecard();
+    document.getElementById('sc-loading').style.display = 'none';
+    document.getElementById('sc-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('sc-loading').innerHTML = `<span style="color:var(--red)">Error loading data: ${e.message}</span>`;
+  }
+}
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  renderScorecard();
+}
+
+function updateGoal() {
+  const val = parseFloat(document.getElementById('goal-input').value);
+  if (val > 0) {
+    saveWeeklyGoal(val);
+    document.getElementById('goal-note').textContent = 'Saved ✓';
+    setTimeout(() => document.getElementById('goal-note').textContent = '', 2000);
+    renderScorecard();
+  }
+}
+
+// ── RENDER SCORECARD ──────────────────────────────────────
+function renderScorecard() {
+  const { start, end } = getWeekBounds(weekOffset);
+  const goal = getWeeklyGoal();
+  const planned = getPlannedWorkouts();
+
+  // Week label
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const isThisWeek = weekOffset === 0;
+  document.getElementById('week-nav-label').textContent = isThisWeek ? 'This Week' : weekOffset < 0 ? `${Math.abs(weekOffset)}w ago` : `${weekOffset}w ahead`;
+  document.getElementById('week-range-label').textContent = `${fmt(start)} – ${fmt(end)}`;
+
+  const weekActs = activitiesInWeek(allActivities, start, end);
+  const runs = weekActs.filter(a => a.type === 'Run');
+  const totalMi = weekActs.reduce((s, a) => s + metersToMiles(a.distance), 0);
+  const totalElev = weekActs.reduce((s, a) => s + metersToFeet(a.total_elevation_gain || 0), 0);
+  const avgPaceSecs = runs.length ? runs.reduce((s, a) => s + (a.moving_time / metersToMiles(a.distance)), 0) / runs.length : 0;
+  const hasHR = weekActs.some(a => a.has_heartrate);
+
+  // Progress color
+  const pct = Math.min(totalMi / goal, 1);
+  const color = pct >= 1 ? 'green' : pct >= 0.6 ? 'yellow' : 'red';
+  const statusLabel = pct >= 1 ? '✓ Goal Met' : pct >= 0.6 ? 'On Track' : pct > 0 ? 'Behind' : 'Not Started';
+
+  // Hero stats
+  const pm = Math.floor(avgPaceSecs/60), ps = Math.round(avgPaceSecs%60).toString().padStart(2,'0');
+  document.getElementById('hero-stats').innerHTML = `
+    ${heroBox('Miles Logged', totalMi.toFixed(1), `of ${goal} mi goal`, color, statusLabel, pct)}
+    ${heroBox('Activities', weekActs.length, `${runs.length} run${runs.length!==1?'s':''}`, weekActs.length > 0 ? 'green' : 'neutral', weekActs.length > 0 ? 'Active' : 'No activity', weekActs.length / 7)}
+    ${heroBox('Elevation', totalElev.toLocaleString(), 'feet gained', totalElev > 500 ? 'green' : 'neutral', totalElev > 0 ? 'Logged' : '—', Math.min(totalElev/2000, 1))}
+    ${heroBox('Avg Pace', avgPaceSecs > 0 ? `${pm}:${ps}` : '—', 'per mile', 'neutral', runs.length > 0 ? 'Runs only' : 'No runs', 0)}`;
+
+  renderDayTable(start, weekActs, planned);
+  renderStreak();
+  renderHRZones(weekActs, hasHR);
+  renderHistoryChart(goal);
+}
+
+function heroBox(label, value, sub, color, status, pct) {
+  const barPct = Math.round(Math.min(pct, 1) * 100);
+  return `<div class="score-box ${color}">
+    <div class="sb-label">${label}</div>
+    <div class="sb-value">${value}</div>
+    <div class="sb-sub">${sub}</div>
+    <div class="sb-status ${color}">${status}</div>
+    <div class="progress-track"><div class="progress-fill ${color}" style="width:${barPct}%"></div></div>
+  </div>`;
+}
+
+// ── DAY TABLE ─────────────────────────────────────────────
+function renderDayTable(weekStart, weekActs, planned) {
+  const days = Array.from({length:7}, (_, i) => {
+    const d = new Date(weekStart); d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  const actByDay = {};
+  weekActs.forEach(a => {
+    const key = isoDate(new Date(a.start_date_local));
+    if (!actByDay[key]) actByDay[key] = [];
+    actByDay[key].push(a);
+  });
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const rows = days.map(d => {
+    const key = isoDate(d);
+    const acts = actByDay[key] || [];
+    const plan = planned[key];
+    const isPast = d < today;
+    const isToday = d.getTime() === today.getTime();
+
+    const actualMi = acts.reduce((s, a) => s + metersToMiles(a.distance), 0);
+    const plannedMi = plan ? parseFloat(plan.dist || 0) : 0;
+    const actType = acts[0]?.type || (plan?.type === 'Rest' ? 'Rest' : null);
+
+    let statusCls = 'pending', statusTxt = isToday ? 'Today' : isPast ? '—' : 'Upcoming';
+    if (acts.length > 0) {
+      if (!plannedMi || actualMi >= plannedMi * 0.9) { statusCls = 'beat'; statusTxt = actualMi >= plannedMi * 1.05 ? '↑ Beat' : '✓ Done'; }
+      else if (actualMi >= plannedMi * 0.7) { statusCls = 'close'; statusTxt = '~ Close'; }
+      else { statusCls = 'miss'; statusTxt = '↓ Short'; }
+    } else if (isPast && plan && plan.type !== 'Rest') {
+      statusCls = 'miss'; statusTxt = 'Missed';
+    } else if (plan?.type === 'Rest' || (!plan && isPast && acts.length === 0 && !isToday)) {
+      statusCls = 'rest'; statusTxt = plan?.type === 'Rest' ? 'Rest' : '—';
+    }
+
+    const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+    const plannedStr = plan ? `${plan.type}${plannedMi ? ' '+plannedMi+'mi' : ''}` : '—';
+    const actualStr = acts.length ? `${actType||'?'} ${actualMi.toFixed(1)}mi` : isPast ? '—' : '';
+
+    return `<div class="day-row${isToday?' today-row':''}">
+      <span class="dr-day">${dayLabel}</span>
+      <span class="dr-type ${actType||'—'}">${actType||'—'}</span>
+      <span class="dr-planned">${plannedStr}</span>
+      <span class="dr-actual ${statusCls}">${actualStr}</span>
+      <span class="dr-status ${statusCls}">${statusTxt}</span>
+    </div>`;
+  });
+
+  document.getElementById('day-table').innerHTML = `
+    <div class="day-row header">
+      <span>Day</span><span>Type</span><span>Planned</span><span>Actual</span><span>Status</span>
+    </div>` + rows.join('');
+}
+
+// ── STREAK ────────────────────────────────────────────────
+function renderStreak() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const planned = getPlannedWorkouts();
+  const actDates = new Set(allActivities.map(a => isoDate(new Date(a.start_date_local))));
+
+  // Last 28 days
+  const dots = Array.from({length:28}, (_, i) => {
+    const d = new Date(today); d.setDate(d.getDate() - (27 - i));
+    const key = isoDate(d);
+    const hasAct = actDates.has(key);
+    const hasPlan = planned[key] && planned[key].type !== 'Rest';
+    const isPast = d <= today;
+    let cls = 'rest';
+    if (hasAct) cls = 'active';
+    else if (isPast && hasPlan) cls = 'missed';
+    return `<div class="streak-dot ${cls}" title="${key}"></div>`;
+  }).join('');
+
+  // Count current streak
+  let streak = 0;
+  for (let i = 0; i <= 60; i++) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    if (actDates.has(isoDate(d))) streak++;
+    else if (i > 0) break;
+  }
+
+  document.getElementById('streak-dots').innerHTML = dots;
+  document.getElementById('streak-count').textContent = `${streak} day streak`;
+}
+
+// ── HR ZONES ──────────────────────────────────────────────
+function renderHRZones(weekActs, hasHR) {
+  const el = document.getElementById('hr-zones');
+  if (!hasHR) {
+    el.innerHTML = `<div class="hr-note">Heart rate data not available.<br>Enable HR sharing in your Strava app settings on Apple Watch to unlock zone tracking.</div>`;
+    return;
+  }
+
+  // Zones based on ~180 max HR (will be personalized once we have data)
+  const zones = [
+    { name: 'Z1 Recovery', range: '<115', color: '#47e8c8', min: 0, max: 115 },
+    { name: 'Z2 Aerobic',  range: '115–138', color: '#e8ff47', min: 115, max: 138 },
+    { name: 'Z3 Tempo',    range: '138–152', color: '#ffbb00', min: 138, max: 152 },
+    { name: 'Z4 Threshold',range: '152–165', color: '#ff6b35', min: 152, max: 165 },
+    { name: 'Z5 Max',      range: '165+',   color: '#ff4444', min: 165, max: 999 },
+  ];
+
+  // Placeholder — shows "enable HR" note per zone since we don't have stream data yet
+  el.innerHTML = zones.map(z => `
+    <div class="hr-zone-row">
+      <span class="hz-label" style="color:${z.color}">${z.name}</span>
+      <span class="hz-range">${z.range} bpm</span>
+      <div class="hz-bar-track"><div class="hz-bar" style="background:${z.color};width:0%"></div></div>
+      <span class="hz-pct">—</span>
+    </div>`).join('') + `<div class="hr-note" style="padding-top:0.75rem">Enable heart rate on Strava to see time in zones.</div>`;
+}
+
+// ── HISTORY CHART ─────────────────────────────────────────
+function renderHistoryChart(goal) {
+  const today = new Date();
+  const weeks = Array.from({length:8}, (_, i) => {
+    const start = getWeekStart(today);
+    start.setDate(start.getDate() - (7 - i) * 7);
+    const end = new Date(start); end.setDate(end.getDate() + 6); end.setHours(23,59,59);
+    const acts = activitiesInWeek(allActivities, start, end);
+    const miles = acts.reduce((s, a) => s + metersToMiles(a.distance), 0);
+    return { start, miles };
+  });
+
+  const maxMi = Math.max(...weeks.map(w => w.miles), goal);
+  const chart = document.getElementById('history-chart');
+  chart.innerHTML = weeks.map((w, i) => {
+    const heightPct = maxMi > 0 ? Math.max((w.miles / maxMi) * 100, 2) : 2;
+    const isCurrentWeek = i === 7 + weekOffset;
+    const color = w.miles >= goal ? 'var(--accent)' : w.miles >= goal * 0.6 ? '#ffbb00' : 'var(--surface3)';
+    const label = w.start.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+        <div style="width:100%;background:${isCurrentWeek ? 'var(--accent)' : color};height:${heightPct}%;min-height:4px;border:${isCurrentWeek?'1px solid var(--accent)':'none'}" title="${w.miles.toFixed(1)} mi"></div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${isCurrentWeek?'var(--accent)':'var(--text3)'};">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+renderNav('scorecard');
+loadScorecard();
+</script>
+</body>
+</html>

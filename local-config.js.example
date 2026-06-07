@@ -1,0 +1,25 @@
+// ── LOCAL CONFIG (gitignored) ─────────────────────────────
+// Copy to local-config.js and fill in your credentials.
+// This file is loaded by every page before nav.js, so the
+// tokens are always in localStorage when the app initialises.
+// The app will auto-refresh the Strava access token using the
+// refresh_token — you should never need to re-paste a token.
+//
+// Setup:
+//   cp local-config.js.example local-config.js
+//   # fill in the values below, save, done.
+//
+// How to get these values:
+//   1. Go to https://www.strava.com/settings/api and create an app.
+//   2. Note your Client ID and Client Secret.
+//   3. Run the OAuth flow once (see README) — the curl response gives
+//      you access_token, refresh_token, and expires_at.
+//   4. Paste them below. The app refreshes automatically from now on.
+
+localStorage.setItem('strava_client_id',     'YOUR_CLIENT_ID');
+localStorage.setItem('strava_client_secret', 'YOUR_CLIENT_SECRET');
+localStorage.setItem('strava_refresh_token', 'YOUR_REFRESH_TOKEN');
+localStorage.setItem('strava_access_token',  'YOUR_ACCESS_TOKEN');
+localStorage.setItem('strava_expires_at',    'YOUR_EXPIRES_AT');  // unix timestamp
+
+localStorage.setItem('claude_api_key', 'YOUR_CLAUDE_API_KEY');
