@@ -4,6 +4,7 @@ function renderNav(activePage) {
     { id: 'dashboard', label: 'Dashboard', href: 'index.html' },
     { id: 'planner',   label: 'Planner',   href: 'planner.html' },
     { id: 'scorecard', label: 'Scorecard', href: 'scorecard.html' },
+    { id: 'hiit',      label: 'HIIT',      href: 'hiit.html' },
   ];
 
   const token = localStorage.getItem('strava_access_token');

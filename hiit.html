@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIIT · Sleddawg Fitness</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;--border:#2a2a2a;--border2:#333333;--text:#f0ede8;--text2:#888880;--text3:#555550;--accent:#e8ff47;--accent2:#ff6b35;--accent3:#47e8c8;--red:#ff4444;--purple:#aa88ff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;}
+  body{min-height:100vh;}
+  a{text-decoration:none;color:inherit;}
+
+  nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100;}
+  .logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:0.05em;}
+  .logo span{color:var(--accent);}
+  .nav-links{display:flex;gap:0;}
+  .nav-link{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1rem;color:var(--text3);transition:color 0.15s;}
+  .nav-link:hover{color:var(--text);}
+  .nav-link.active{color:var(--accent);}
+
+  main{max-width:1300px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:320px 1fr;gap:1.5rem;align-items:start;}
+
+  .panel{background:var(--surface);border:1px solid var(--border);padding:1.25rem;}
+  .panel+.panel{margin-top:1rem;}
+  .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:1rem;}
+
+  .chip-group{display:flex;gap:0.375rem;flex-wrap:wrap;margin-bottom:1rem;}
+  .chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;padding:0.375rem 0.75rem;border:1px solid var(--border2);color:var(--text3);cursor:pointer;background:none;transition:all 0.15s;}
+  .chip:hover{color:var(--text);}
+  .chip.active{color:var(--bg);background:var(--accent);border-color:var(--accent);}
+  .chip.focus-upper.active{background:var(--purple);border-color:var(--purple);}
+  .chip.focus-lower.active{background:var(--accent2);border-color:var(--accent2);}
+  .chip.focus-full.active{background:var(--accent3);border-color:var(--accent3);}
+
+  .field-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.375rem;}
+  .field-group{margin-bottom:1rem;}
+  textarea{width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:0.5rem 0.625rem;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;resize:vertical;min-height:56px;}
+  textarea::placeholder{color:var(--text3);}
+  textarea:focus{border-color:var(--accent3);}
+
+  .btn-generate{width:100%;padding:0.75rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:0.08em;background:var(--accent);color:var(--bg);border:none;cursor:pointer;transition:opacity 0.15s;}
+  .btn-generate:hover{opacity:0.85;}
+  .btn-generate:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .history-item{padding:0.75rem;border:1px solid var(--border);cursor:pointer;transition:border-color 0.15s;margin-bottom:0.5rem;}
+  .history-item:last-child{margin-bottom:0;}
+  .history-item:hover{border-color:var(--border2);}
+  .history-item.selected{border-color:var(--accent3);}
+  .hi-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.3rem;}
+  .hi-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;}
+  .hi-date{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);}
+  .hi-meta{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);display:flex;align-items:center;gap:0.5rem;}
+  .hi-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.06em;padding:0.1rem 0.4rem;}
+  .hi-badge.upper{background:rgba(170,136,255,0.15);color:var(--purple);}
+  .hi-badge.lower{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .hi-badge.full{background:rgba(71,232,200,0.15);color:var(--accent3);}
+
+  .workout-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;border:1px solid var(--border);padding:3rem;text-align:center;}
+  .workout-empty p{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3);margin-bottom:0.4rem;}
+  .workout-empty p:first-child{color:var(--text2);}
+
+  .workout-card{background:var(--surface);border:1px solid var(--border);}
+  .wc-header{padding:1.5rem;border-bottom:1px solid var(--border);}
+  .wc-format-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;padding:0.2rem 0.6rem;margin-bottom:0.75rem;display:inline-block;}
+  .wc-format-badge.for-time{background:rgba(232,255,71,0.15);color:var(--accent);}
+  .wc-format-badge.amrap{background:rgba(71,232,200,0.15);color:var(--accent3);}
+  .wc-format-badge.stations{background:rgba(170,136,255,0.15);color:var(--purple);}
+  .wc-format-badge.rounds{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .wc-format-badge.emom{background:rgba(255,68,68,0.15);color:var(--red);}
+  .wc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:2rem;letter-spacing:0.02em;margin-bottom:0.25rem;line-height:1.1;}
+  .wc-desc{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);margin-bottom:0.75rem;}
+  .wc-meta{display:flex;gap:1.5rem;}
+  .wc-meta-item{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);}
+  .wc-meta-item span{color:var(--text2);margin-left:0.3rem;}
+
+  .wc-body{padding:1.5rem;}
+  .wc-section{margin-bottom:1.5rem;}
+  .wc-section:last-child{margin-bottom:0;}
+  .wc-section-header{display:flex;align-items:baseline;gap:0.75rem;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+  .wc-section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:0.06em;}
+  .wc-section-structure{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--accent3);}
+
+  .exercise-row{display:flex;align-items:baseline;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--border);}
+  .exercise-row:last-child{border-bottom:none;}
+  .ex-reps{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--accent);min-width:3rem;text-align:right;flex-shrink:0;}
+  .ex-name{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1rem;flex:1;}
+  .ex-weight{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--accent2);flex-shrink:0;}
+  .ex-note{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);flex-shrink:0;}
+
+  .wc-coaching{margin:0 1.5rem 1.5rem;padding:0.875rem;background:rgba(71,232,200,0.05);border-left:2px solid var(--accent3);}
+  .wc-coaching-label{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--accent3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem;}
+  .wc-coaching-text{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);line-height:1.5;}
+
+  .wc-actions{display:flex;gap:0.5rem;padding:1.25rem 1.5rem;border-top:1px solid var(--border);align-items:center;}
+  .btn-save{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1.25rem;background:var(--accent3);color:var(--bg);border:none;cursor:pointer;transition:opacity 0.15s;}
+  .btn-save:hover{opacity:0.85;}
+  .btn-regen{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1.25rem;background:none;border:1px solid var(--border2);color:var(--text3);cursor:pointer;transition:all 0.15s;}
+  .btn-regen:hover{color:var(--text);border-color:var(--text3);}
+  .saved-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--accent3);}
+
+  @media(max-width:900px){
+    main{grid-template-columns:1fr;padding:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main>
+  <!-- LEFT SIDEBAR -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Generate Workout</div>
+
+      <div class="field-group">
+        <div class="field-label">Time Available</div>
+        <div class="chip-group" id="time-chips">
+          <button class="chip" data-val="20" onclick="selectTime(this)">20 min</button>
+          <button class="chip active" data-val="30" onclick="selectTime(this)">30 min</button>
+          <button class="chip" data-val="45" onclick="selectTime(this)">45 min</button>
+          <button class="chip" data-val="60" onclick="selectTime(this)">60 min</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Focus</div>
+        <div class="chip-group" id="focus-chips">
+          <button class="chip focus-upper" data-val="upper" onclick="selectFocus(this)">Upper Body</button>
+          <button class="chip focus-lower" data-val="lower" onclick="selectFocus(this)">Lower Body</button>
+          <button class="chip focus-full active" data-val="full" onclick="selectFocus(this)">Full Body</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Notes (optional)</div>
+        <textarea id="workout-notes" placeholder="e.g. avoid jumping, want stations format, no barbells..."></textarea>
+      </div>
+
+      <button class="btn-generate" id="gen-btn" onclick="generateWorkout()">✦ Generate Workout</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Past Workouts</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Workout Display -->
+  <div id="workout-display">
+    <div class="workout-empty">
+      <p>No workout generated yet.</p>
+      <p>Select your time and focus, then hit Generate.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const WORKER_URL = 'https://aged-silence-bd89.samuelwdonovan.workers.dev/';
+const STORAGE_KEY = 'hiit_workouts';
+
+let selectedTime = 30;
+let selectedFocus = 'full';
+let currentWorkout = null;
+let activeHistoryId = null;
+
+const SEED_WORKOUTS = [
+  {
+    id: 'seed-1', date: '2026-05-20', time: 30, focus: 'full',
+    name: 'Classic Chipper', format: 'For Time',
+    description: 'Five-movement chipper with a cardio break in the middle',
+    sections: [{label: '', structure: 'For Time', exercises: [
+      {name: 'KB Swings', reps: '20'},
+      {name: 'Cardio', reps: '1 min', note: 'Row / Stairmaster / Run / Ski Erg — 300m goal'},
+      {name: 'DB Push Press', reps: '20', weight: 'choose weight'},
+      {name: 'Burpees', reps: '20'},
+      {name: 'Wall Med Ball Slams', reps: '20'},
+      {name: 'Toes-to-Bar', reps: '20'},
+    ]}],
+    coaching: 'Pace the chipper — save your grip for toes-to-bar at the end.'
+  },
+  {
+    id: 'seed-2', date: '2026-05-27', time: 30, focus: 'full',
+    name: 'Man Maker Grind', format: 'Rounds',
+    description: '5-minute window, 5 rounds of four brutal movements',
+    sections: [{label: '', structure: '5 Rounds in 5-min window', exercises: [
+      {name: 'Man Makers', reps: '8'},
+      {name: 'Burpees', reps: '8'},
+      {name: 'Toes-to-Bar', reps: '8'},
+      {name: 'Fan Bike / Rower / Stairmaster / Treadmill', reps: '1 min', note: 'all out'},
+    ]}],
+    coaching: 'Man makers are grip-intensive — shake out between sets. Sprint the cardio.'
+  },
+  {
+    id: 'seed-3', date: '2026-06-03', time: 30, focus: 'full',
+    name: 'Triple Station', format: 'Stations',
+    description: '3 stations, each completed twice — 4 min work / 1 min rest/rotate',
+    sections: [
+      {label: 'Station 1', structure: '4 min — target then max effort', exercises: [
+        {name: 'Row', reps: '500m target', note: '→ max calories after'},
+        {name: 'OR Ski Erg', reps: '400m target', note: '→ max calories after'},
+        {name: 'OR Treadmill', reps: '0.5mi target', note: '→ max distance after'},
+      ]},
+      {label: 'Station 2', structure: 'AMRAP 4 min', exercises: [
+        {name: 'Man Makers', reps: '6'},
+        {name: 'Pull-ups', reps: '6'},
+        {name: 'KB Swings', reps: '20'},
+      ]},
+      {label: 'Station 3', structure: 'AMRAP 4 min', exercises: [
+        {name: 'Box Jumps', reps: '12'},
+        {name: 'Med Ball Slams', reps: '10'},
+        {name: 'Walking Lunges', reps: '20', note: 'DB/KB optional'},
+      ]},
+    ],
+    coaching: 'Reset mentally at every rotation. Each 4-minute window is its own race.'
+  },
+  {
+    id: 'seed-4', date: '2026-06-07', time: 45, focus: 'full',
+    name: 'Clean & Balanced', format: 'Rounds',
+    description: '4 rounds for time across 6 movements — cardio sandwiched between lifts',
+    sections: [{label: '', structure: '4 Rounds For Time', exercises: [
+      {name: 'DB Cleans', reps: '20', weight: '40 lb', note: '10 each arm'},
+      {name: 'Box Jumps', reps: '20'},
+      {name: 'Dips', reps: '10'},
+      {name: 'Back Squats', reps: '10', weight: '135 lb'},
+      {name: 'Row', reps: '300m'},
+      {name: 'Bosu Balance', reps: '30 sec', note: 'each leg'},
+    ]}],
+    coaching: 'Use the row as active recovery after squats. Keep back squats controlled — no bouncing reps.'
+  },
+];
+
+function getWorkouts() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!stored) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_WORKOUTS));
+      return SEED_WORKOUTS;
+    }
+    return stored;
+  } catch { return SEED_WORKOUTS; }
+}
+
+function saveWorkoutToHistory(wo) {
+  const existing = getWorkouts().filter(w => w.id !== wo.id);
+  const updated = [wo, ...existing].slice(0, 30);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  renderHistory();
+}
+
+function selectTime(el) {
+  document.querySelectorAll('#time-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedTime = parseInt(el.dataset.val);
+}
+
+function selectFocus(el) {
+  document.querySelectorAll('#focus-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedFocus = el.dataset.val;
+}
+
+function focusLabel(f) {
+  return {upper: 'Upper Body', lower: 'Lower Body', full: 'Full Body'}[f] || f;
+}
+
+function formatBadgeClass(format) {
+  if (!format) return 'rounds';
+  const f = format.toLowerCase();
+  if (f.includes('time')) return 'for-time';
+  if (f.includes('amrap')) return 'amrap';
+  if (f.includes('station')) return 'stations';
+  if (f.includes('emom')) return 'emom';
+  return 'rounds';
+}
+
+function renderHistory() {
+  const workouts = getWorkouts();
+  const el = document.getElementById('history-list');
+  if (!workouts.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:0.7rem">No past workouts yet.</div>';
+    return;
+  }
+  el.innerHTML = workouts.map(w => `
+    <div class="history-item${activeHistoryId === w.id ? ' selected' : ''}" onclick="showHistoryWorkout('${w.id}')">
+      <div class="hi-top">
+        <span class="hi-name">${w.name}</span>
+        <span class="hi-date">${w.date}</span>
+      </div>
+      <div class="hi-meta">
+        <span class="hi-badge ${w.focus}">${focusLabel(w.focus)}</span>
+        ${w.time} min &middot; ${w.format}
+      </div>
+    </div>
+  `).join('');
+}
+
+function showHistoryWorkout(id) {
+  const wo = getWorkouts().find(w => w.id === id);
+  if (!wo) return;
+  activeHistoryId = id;
+  currentWorkout = wo;
+  renderHistory();
+  renderWorkout(wo, false);
+}
+
+function renderWorkout(wo, isNew) {
+  const fmtCls = formatBadgeClass(wo.format);
+
+  const sectionsHtml = wo.sections.map(sec => `
+    <div class="wc-section">
+      ${(sec.label || sec.structure) ? `
+        <div class="wc-section-header">
+          ${sec.label ? `<span class="wc-section-label">${sec.label}</span>` : ''}
+          ${sec.structure ? `<span class="wc-section-structure">${sec.structure}</span>` : ''}
+        </div>` : ''}
+      ${sec.exercises.map(ex => `
+        <div class="exercise-row">
+          <span class="ex-reps">${ex.reps}</span>
+          <span class="ex-name">${ex.name}</span>
+          ${ex.weight ? `<span class="ex-weight">${ex.weight}</span>` : ''}
+          ${ex.note ? `<span class="ex-note">${ex.note}</span>` : ''}
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('workout-display').innerHTML = `
+    <div class="workout-card">
+      <div class="wc-header">
+        <div class="wc-format-badge ${fmtCls}">${wo.format}</div>
+        <div class="wc-name">${wo.name}</div>
+        <div class="wc-desc">${wo.description}</div>
+        <div class="wc-meta">
+          <div class="wc-meta-item">TIME<span>${wo.time} min</span></div>
+          <div class="wc-meta-item">FOCUS<span>${focusLabel(wo.focus)}</span></div>
+          <div class="wc-meta-item">DATE<span>${wo.date}</span></div>
+        </div>
+      </div>
+      <div class="wc-body">${sectionsHtml}</div>
+      ${wo.coaching ? `
+      <div class="wc-coaching">
+        <div class="wc-coaching-label">Coach's Note</div>
+        <div class="wc-coaching-text">${wo.coaching}</div>
+      </div>` : ''}
+      <div class="wc-actions">
+        ${isNew
+          ? `<button class="btn-save" onclick="saveCurrentWorkout()">Save to History</button>`
+          : `<span class="saved-label">✓ Saved</span>`}
+        <button class="btn-regen" onclick="generateWorkout()">↺ Regenerate</button>
+      </div>
+    </div>`;
+}
+
+function saveCurrentWorkout() {
+  if (!currentWorkout) return;
+  saveWorkoutToHistory(currentWorkout);
+  renderWorkout(currentWorkout, false);
+}
+
+async function generateWorkout() {
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  activeHistoryId = null;
+  currentWorkout = null;
+  renderHistory();
+
+  document.getElementById('workout-display').innerHTML = `
+    <div class="workout-empty">
+      <p style="color:var(--accent3)">Generating your workout...</p>
+      <p>Claude is cooking something up.</p>
+    </div>`;
+
+  const recentNames = getWorkouts().slice(0, 6).map(w => `"${w.name}" (${w.format}, ${focusLabel(w.focus)})`).join(', ');
+  const notes = document.getElementById('workout-notes').value.trim();
+
+  try {
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        system: `You are a CrossFit/HIIT coach who creates tough, creative, varied workouts. Use movements from this list: KB swings, man makers, box jumps, pull-ups, toes-to-bar, DB push press, DB cleans, barbell back squats, dips, burpees, wall med ball slams, walking lunges, bosu balance, push-ups, ring rows, kettlebell deadlifts, assault bike, battle ropes. Cardio options: row, ski erg, fan bike, stairmaster, treadmill, run. Formats to choose from: "For Time", "AMRAP", "Stations", "Rounds", "EMOM". Include specific weights when relevant (e.g. "40 lb DB", "53 lb KB"). Stations format = 3 stations rotating with rest, each done twice. Always vary the format from recent workouts.
+
+Return ONLY valid JSON with no other text:
+{"name":"workout name","format":"For Time|AMRAP|Stations|Rounds|EMOM","description":"one-line hook","sections":[{"label":"e.g. Station 1 (omit if not needed)","structure":"e.g. AMRAP 4 min or 4 Rounds For Time","exercises":[{"name":"exercise name","reps":"reps or duration","weight":"optional e.g. 40 lb","note":"optional e.g. each arm"}]}],"coaching":"1-2 sentence coaching tip"}`,
+        messages: [{role: 'user', content: `Create a ${selectedTime}-minute ${focusLabel(selectedFocus)} HIIT workout. Recent workouts to avoid repeating: ${recentNames || 'none yet'}. ${notes ? `Additional notes: ${notes}.` : ''} Make the format distinct from recent history. Be creative — vary the structure, rep schemes, and movements.`}]
+      })
+    });
+
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    const raw = data.content[0].text.replace(/```json|```/g, '').trim();
+    const wo = JSON.parse(raw);
+
+    const today = new Date().toISOString().split('T')[0];
+    currentWorkout = {
+      ...wo,
+      id: `wo-${Date.now()}`,
+      date: today,
+      time: selectedTime,
+      focus: selectedFocus,
+    };
+
+    renderWorkout(currentWorkout, true);
+  } catch(e) {
+    document.getElementById('workout-display').innerHTML = `
+      <div class="workout-empty">
+        <p style="color:var(--red)">Generation failed.</p>
+        <p>${e.message}</p>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Generate Workout';
+  }
+}
+
+renderHistory();
+</script>
+<script src="local-config.js" onerror="void 0"></script>
+<script src="nav.js"></script>
+<script>renderNav('hiit');</script>
+</body>
+</html>
