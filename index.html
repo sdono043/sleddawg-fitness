@@ -442,7 +442,7 @@
 <script>
 const CLIENT_ID = '250737';
 const REDIRECT_URI = 'https://sdono043.github.io/sleddawg-fitness';
-const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+const CLAUDE_API = 'https://aged-silence-bd89.samuelwdonovan.workers.dev/';
 
 let allActivities = [];
 let displayedCount = 10;
@@ -801,20 +801,9 @@ async function generateWorkoutPlan() {
   const totalWeeklyMi = recentRuns.slice(0, 5).reduce((s, a) => s + metersToMiles(a.distance), 0).toFixed(1);
 
   try {
-    const claudeKey = localStorage.getItem('claude_api_key');
-    if (!claudeKey) {
-      output.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text3)">
-        No Claude API key found. Run this in your browser console once:<br><br>
-        <span style="color:var(--accent)">localStorage.setItem('claude_api_key', 'your-key-here')</span><br><br>
-        Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent3)">console.anthropic.com</a>
-      </div>`;
-      btn.disabled = false;
-      return;
-    }
-
     const resp = await fetch(CLAUDE_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
