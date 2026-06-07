@@ -36,13 +36,18 @@
   .week-nav button:hover{border-color:var(--accent);color:var(--accent);}
   .week-label{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text2);min-width:160px;text-align:center;}
 
-  /* GOAL SETTING */
-  .goal-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);}
-  .goal-row label{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);text-transform:uppercase;}
-  .goal-input{background:var(--surface3);border:1px solid var(--border2);color:var(--accent);padding:0.4rem 0.625rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;width:80px;text-align:center;outline:none;}
-  .goal-input:focus{border-color:var(--accent);}
-  .goal-unit{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text2);}
-  .goal-save{background:var(--accent);color:var(--bg);border:none;cursor:pointer;padding:0.4rem 1rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;}
+  /* PLAN INFO BAR */
+  .plan-bar{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);}
+  .plan-bar-empty{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);}
+  .plan-wk{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;white-space:nowrap;}
+  .plan-phase-tag{font-family:'DM Mono',monospace;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.15rem 0.4rem;}
+  .plan-phase-tag.base{background:rgba(71,232,200,0.15);color:var(--accent3);}
+  .plan-phase-tag.build{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .plan-phase-tag.peak{background:rgba(232,255,71,0.15);color:var(--accent);}
+  .plan-phase-tag.race-specific{background:rgba(170,136,255,0.15);color:#aa88ff;}
+  .plan-phase-tag.taper{background:rgba(255,68,68,0.15);color:var(--red);}
+  .plan-phase-tag.race{background:var(--accent);color:var(--bg);}
+  .plan-key{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);flex:1;}
 
   /* BIG SCORE */
   .score-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--border);margin-bottom:1.5rem;}
@@ -147,14 +152,20 @@
     </div>
   </div>
 
-  <!-- GOAL SETTING -->
-  <div class="goal-row">
-    <label>Weekly Goal</label>
-    <input type="number" class="goal-input" id="goal-input" value="20" min="1" max="200" step="0.5" />
-    <span class="goal-unit">miles / week</span>
-    <button class="goal-save" onclick="updateGoal()">Save</button>
-    <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)" id="goal-note"></span>
+  <!-- PLAN INFO BAR -->
+  <div class="plan-bar" id="plan-bar" style="display:none">
+    <div style="display:flex;align-items:center;gap:0.625rem">
+      <span class="plan-wk" id="plan-wk-label"></span>
+      <span class="plan-phase-tag" id="plan-phase-tag"></span>
+    </div>
+    <span class="plan-key" id="plan-key-label"></span>
+    <div style="text-align:right;white-space:nowrap">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em">Plan Target</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.75rem;line-height:1;color:var(--accent)" id="plan-target-mi"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3)">miles this week</div>
+    </div>
   </div>
+  <div id="plan-bar-empty" style="display:none;margin-bottom:1.5rem;padding:0.75rem 1.25rem;background:var(--surface);border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)">Week outside training plan — no mileage target set.</div>
 
   <!-- LOADING -->
   <div id="sc-loading" class="loading"><div class="spinner"></div><span>Loading your Strava data...</span></div>
@@ -243,7 +254,6 @@ async function loadScorecard() {
 
   try {
     allActivities = await fetchActivities(token, 100);
-    document.getElementById('goal-input').value = getWeeklyGoal();
     renderScorecard();
     document.getElementById('sc-loading').style.display = 'none';
     document.getElementById('sc-content').style.display = 'block';
@@ -257,20 +267,12 @@ function changeWeek(dir) {
   renderScorecard();
 }
 
-function updateGoal() {
-  const val = parseFloat(document.getElementById('goal-input').value);
-  if (val > 0) {
-    saveWeeklyGoal(val);
-    document.getElementById('goal-note').textContent = 'Saved ✓';
-    setTimeout(() => document.getElementById('goal-note').textContent = '', 2000);
-    renderScorecard();
-  }
-}
 
 // ── RENDER SCORECARD ──────────────────────────────────────
 function renderScorecard() {
   const { start, end } = getWeekBounds(weekOffset);
-  const goal = getWeeklyGoal();
+  const planWeek = getPlanWeekForDate(start);
+  const goal = planWeek ? planWeek.miles : getWeeklyGoal();
   const planned = getPlannedWorkouts();
 
   // Week label
@@ -278,6 +280,24 @@ function renderScorecard() {
   const isThisWeek = weekOffset === 0;
   document.getElementById('week-nav-label').textContent = isThisWeek ? 'This Week' : weekOffset < 0 ? `${Math.abs(weekOffset)}w ago` : `${weekOffset}w ahead`;
   document.getElementById('week-range-label').textContent = `${fmt(start)} – ${fmt(end)}`;
+
+  // Plan info bar
+  const planBar = document.getElementById('plan-bar');
+  const planBarEmpty = document.getElementById('plan-bar-empty');
+  if (planWeek) {
+    planBar.style.display = 'flex';
+    planBarEmpty.style.display = 'none';
+    document.getElementById('plan-wk-label').textContent = `Week ${planWeek.weekNum}`;
+    const tag = document.getElementById('plan-phase-tag');
+    const phaseLabels = { base:'Base', build:'Build', peak:'Peak', 'race-specific':'Race-Specific', taper:'Taper', race:'Race Week' };
+    tag.textContent = phaseLabels[planWeek.phase] || planWeek.phase;
+    tag.className = `plan-phase-tag ${planWeek.phase}`;
+    document.getElementById('plan-key-label').textContent = planWeek.key;
+    document.getElementById('plan-target-mi').textContent = planWeek.miles;
+  } else {
+    planBar.style.display = 'none';
+    planBarEmpty.style.display = 'block';
+  }
 
   const weekActs = activitiesInWeek(allActivities, start, end);
   const runs = weekActs.filter(a => a.type === 'Run');
@@ -289,12 +309,12 @@ function renderScorecard() {
   // Progress color
   const pct = Math.min(totalMi / goal, 1);
   const color = pct >= 1 ? 'green' : pct >= 0.6 ? 'yellow' : 'red';
-  const statusLabel = pct >= 1 ? '✓ Goal Met' : pct >= 0.6 ? 'On Track' : pct > 0 ? 'Behind' : 'Not Started';
+  const statusLabel = pct >= 1 ? (planWeek ? '✓ Plan Met' : '✓ Goal Met') : pct >= 0.6 ? 'On Track' : pct > 0 ? 'Behind Plan' : 'Not Started';
 
   // Hero stats
   const pm = Math.floor(avgPaceSecs/60), ps = Math.round(avgPaceSecs%60).toString().padStart(2,'0');
   document.getElementById('hero-stats').innerHTML = `
-    ${heroBox('Miles Logged', totalMi.toFixed(1), `of ${goal} mi goal`, color, statusLabel, pct)}
+    ${heroBox('Miles Logged', totalMi.toFixed(1), `of ${goal} mi ${planWeek ? 'planned' : 'goal'}`, color, statusLabel, pct)}
     ${heroBox('Activities', weekActs.length, `${runs.length} run${runs.length!==1?'s':''}`, weekActs.length > 0 ? 'green' : 'neutral', weekActs.length > 0 ? 'Active' : 'No activity', weekActs.length / 7)}
     ${heroBox('Elevation', totalElev.toLocaleString(), 'feet gained', totalElev > 500 ? 'green' : 'neutral', totalElev > 0 ? 'Logged' : '—', Math.min(totalElev/2000, 1))}
     ${heroBox('Avg Pace', avgPaceSecs > 0 ? `${pm}:${ps}` : '—', 'per mile', 'neutral', runs.length > 0 ? 'Runs only' : 'No runs', 0)}`;
@@ -302,7 +322,7 @@ function renderScorecard() {
   renderDayTable(start, weekActs, planned);
   renderStreak();
   renderHRZones(weekActs, hasHR);
-  renderHistoryChart(goal);
+  renderHistoryChart();
 }
 
 function heroBox(label, value, sub, color, status, pct) {
@@ -432,7 +452,7 @@ function renderHRZones(weekActs, hasHR) {
 }
 
 // ── HISTORY CHART ─────────────────────────────────────────
-function renderHistoryChart(goal) {
+function renderHistoryChart() {
   const today = new Date();
   const weeks = Array.from({length:8}, (_, i) => {
     const start = getWeekStart(today);
@@ -440,19 +460,23 @@ function renderHistoryChart(goal) {
     const end = new Date(start); end.setDate(end.getDate() + 6); end.setHours(23,59,59);
     const acts = activitiesInWeek(allActivities, start, end);
     const miles = acts.reduce((s, a) => s + metersToMiles(a.distance), 0);
-    return { start, miles };
+    const planW = getPlanWeekForDate(start);
+    const target = planW ? planW.miles : getWeeklyGoal();
+    return { start, miles, target };
   });
 
-  const maxMi = Math.max(...weeks.map(w => w.miles), goal);
+  const maxMi = Math.max(...weeks.map(w => Math.max(w.miles, w.target)), 1);
   const chart = document.getElementById('history-chart');
   chart.innerHTML = weeks.map((w, i) => {
     const heightPct = maxMi > 0 ? Math.max((w.miles / maxMi) * 100, 2) : 2;
+    const targetPct = maxMi > 0 ? (w.target / maxMi) * 100 : 0;
     const isCurrentWeek = i === 7 + weekOffset;
-    const color = w.miles >= goal ? 'var(--accent)' : w.miles >= goal * 0.6 ? '#ffbb00' : 'var(--surface3)';
+    const color = w.miles >= w.target ? 'var(--accent)' : w.miles >= w.target * 0.6 ? '#ffbb00' : w.miles > 0 ? 'var(--red)' : 'var(--surface3)';
     const label = w.start.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
-      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-        <div style="width:100%;background:${isCurrentWeek ? 'var(--accent)' : color};height:${heightPct}%;min-height:4px;border:${isCurrentWeek?'1px solid var(--accent)':'none'}" title="${w.miles.toFixed(1)} mi"></div>
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end;position:relative">
+        <div style="width:100%;background:${isCurrentWeek ? 'var(--accent)' : color};height:${heightPct}%;min-height:4px" title="${w.miles.toFixed(1)} mi / ${w.target} planned"></div>
+        <div style="position:absolute;left:0;right:0;bottom:${targetPct}%;height:1px;background:rgba(232,255,71,0.35)" title="${w.target} mi planned"></div>
       </div>
       <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${isCurrentWeek?'var(--accent)':'var(--text3)'};">${label}</div>
     </div>`;
