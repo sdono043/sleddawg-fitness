@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sleddawg Fitness</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -16,18 +17,18 @@
 </style>
 <style>
   :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --surface2: #1a1a1a;
-    --surface3: #222222;
-    --border: #2a2a2a;
-    --border2: #333333;
+    --bg: #0b1224;
+    --surface: #0f1a30;
+    --surface2: #142035;
+    --surface3: #1a2840;
+    --border: #1e2e4e;
+    --border2: #263654;
     --text: #f0ede8;
-    --text2: #888880;
-    --text3: #555550;
-    --accent: #e8ff47;
-    --accent2: #ff6b35;
-    --accent3: #47e8c8;
+    --text2: #8896ac;
+    --text3: #4a5a74;
+    --accent: #c8b27a;
+    --accent2: #e8c868;
+    --accent3: #5ab0e8;
     --red: #ff4444;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -168,9 +169,9 @@
     font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
     padding: 0.2rem 0.5rem; min-width: 42px; text-align: center;
   }
-  .act-type-badge.Run { background: rgba(232,255,71,0.15); color: var(--accent); }
-  .act-type-badge.Walk { background: rgba(71,232,200,0.15); color: var(--accent3); }
-  .act-type-badge.Ride { background: rgba(255,107,53,0.15); color: var(--accent2); }
+  .act-type-badge.Run { background: rgba(200,178,122,0.15); color: var(--accent); }
+  .act-type-badge.Walk { background: rgba(90,176,232,0.15); color: var(--accent3); }
+  .act-type-badge.Ride { background: rgba(232,200,104,0.15); color: var(--accent2); }
   .act-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
   .act-meta { display: flex; gap: 1rem; }
   .act-stat { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text2); }
@@ -228,9 +229,9 @@
     transition: background 0.2s;
   }
   .chart-bar:hover { background: var(--accent); }
-  .chart-bar.run { background: rgba(232,255,71,0.4); }
+  .chart-bar.run { background: rgba(200,178,122,0.4); }
   .chart-bar.run:hover { background: var(--accent); }
-  .chart-bar.walk { background: rgba(71,232,200,0.3); }
+  .chart-bar.walk { background: rgba(90,176,232,0.3); }
   .chart-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3); }
 
   /* DETAIL MODAL */
@@ -739,7 +740,7 @@ function renderMap(activity) {
   if (mapInstance) { mapInstance.remove(); mapInstance = null; }
   mapInstance = L.map('map', { zoomControl: false, attributionControl: false });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapInstance);
-  const line = L.polyline(coords, { color: '#e8ff47', weight: 2.5, opacity: 0.9 }).addTo(mapInstance);
+  const line = L.polyline(coords, { color: '#c8b27a', weight: 2.5, opacity: 0.9 }).addTo(mapInstance);
   mapInstance.fitBounds(line.getBounds(), { padding: [20, 20] });
 
   document.getElementById('map-activity-name').textContent = activity.name;
@@ -767,7 +768,7 @@ function openModal(a) {
     if (coords.length) {
       modalMapInstance = L.map('modal-map', { zoomControl: true, attributionControl: false });
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(modalMapInstance);
-      const line = L.polyline(coords, { color: '#e8ff47', weight: 3, opacity: 0.9 }).addTo(modalMapInstance);
+      const line = L.polyline(coords, { color: '#c8b27a', weight: 3, opacity: 0.9 }).addTo(modalMapInstance);
       modalMapInstance.fitBounds(line.getBounds(), { padding: [20, 20] });
     }
   }, 100);

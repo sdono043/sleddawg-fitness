@@ -14,7 +14,7 @@ function renderNav(activePage) {
 
   document.getElementById('nav-placeholder').innerHTML = `
     <nav>
-      <a href="index.html" class="logo">SLEDD<span>AWG</span></a>
+      <a href="index.html" class="logo"><img src="logo.png" alt="Sleddawg Fitness" style="height:2.2rem;width:auto;vertical-align:middle;display:block;"></a>
       <div class="nav-links">
         ${pages.map(p => `
           <a href="${p.href}" class="nav-link${activePage === p.id ? ' active' : ''}">${p.label}</a>

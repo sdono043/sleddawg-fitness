@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scorecard · Sleddawg Fitness</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;--border:#2a2a2a;--border2:#333333;--text:#f0ede8;--text2:#888880;--text3:#555550;--accent:#e8ff47;--accent2:#ff6b35;--accent3:#47e8c8;--red:#ff4444;}
+  :root{--bg:#0b1224;--surface:#0f1a30;--surface2:#142035;--surface3:#1a2840;--border:#1e2e4e;--border2:#263654;--text:#f0ede8;--text2:#8896ac;--text3:#4a5a74;--accent:#c8b27a;--accent2:#e8c868;--accent3:#5ab0e8;--red:#ff4444;}
   *{box-sizing:border-box;margin:0;padding:0;}
   html{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;}
   body{min-height:100vh;}
@@ -41,9 +42,9 @@
   .plan-bar-empty{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);}
   .plan-wk{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;white-space:nowrap;}
   .plan-phase-tag{font-family:'DM Mono',monospace;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.15rem 0.4rem;}
-  .plan-phase-tag.base{background:rgba(71,232,200,0.15);color:var(--accent3);}
-  .plan-phase-tag.build{background:rgba(255,107,53,0.15);color:var(--accent2);}
-  .plan-phase-tag.peak{background:rgba(232,255,71,0.15);color:var(--accent);}
+  .plan-phase-tag.base{background:rgba(90,176,232,0.15);color:var(--accent3);}
+  .plan-phase-tag.build{background:rgba(232,200,104,0.15);color:var(--accent2);}
+  .plan-phase-tag.peak{background:rgba(200,178,122,0.15);color:var(--accent);}
   .plan-phase-tag.race-specific{background:rgba(170,136,255,0.15);color:#aa88ff;}
   .plan-phase-tag.taper{background:rgba(255,68,68,0.15);color:var(--red);}
   .plan-phase-tag.race{background:var(--accent);color:var(--bg);}
@@ -87,9 +88,9 @@
   .day-row.header{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding-bottom:0.5rem;}
   .dr-day{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);}
   .dr-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;text-transform:uppercase;padding:0.15rem 0.4rem;text-align:center;}
-  .dr-type.Run{background:rgba(232,255,71,0.15);color:var(--accent);}
-  .dr-type.Swim{background:rgba(71,232,200,0.15);color:var(--accent3);}
-  .dr-type.Ride{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .dr-type.Run{background:rgba(200,178,122,0.15);color:var(--accent);}
+  .dr-type.Swim{background:rgba(90,176,232,0.15);color:var(--accent3);}
+  .dr-type.Ride{background:rgba(232,200,104,0.15);color:var(--accent2);}
   .dr-type.Walk,.dr-type.Other{background:rgba(255,255,255,0.08);color:var(--text2);}
   .dr-type.Strength{background:rgba(170,136,255,0.15);color:#aa88ff;}
   .dr-type.Rest,.dr-type.—{background:transparent;color:var(--text3);}
@@ -434,10 +435,10 @@ function renderHRZones(weekActs, hasHR) {
 
   // Zones based on ~180 max HR (will be personalized once we have data)
   const zones = [
-    { name: 'Z1 Recovery', range: '<115', color: '#47e8c8', min: 0, max: 115 },
-    { name: 'Z2 Aerobic',  range: '115–138', color: '#e8ff47', min: 115, max: 138 },
+    { name: 'Z1 Recovery', range: '<115', color: '#5ab0e8', min: 0, max: 115 },
+    { name: 'Z2 Aerobic',  range: '115–138', color: '#c8b27a', min: 115, max: 138 },
     { name: 'Z3 Tempo',    range: '138–152', color: '#ffbb00', min: 138, max: 152 },
-    { name: 'Z4 Threshold',range: '152–165', color: '#ff6b35', min: 152, max: 165 },
+    { name: 'Z4 Threshold',range: '152–165', color: '#e8c868', min: 152, max: 165 },
     { name: 'Z5 Max',      range: '165+',   color: '#ff4444', min: 165, max: 999 },
   ];
 
@@ -479,7 +480,7 @@ function renderHistoryChart() {
       <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;position:relative">
         <div style="font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:500;color:${w.miles>0?textColor:'transparent'};text-align:center;margin-bottom:2px">${w.miles>0?w.miles.toFixed(1):''}</div>
         <div style="width:100%;background:${isCurrentWeek?'var(--accent)':color};height:${heightPct}%;position:relative">
-          <div style="position:absolute;left:-1px;right:-1px;bottom:${heightPct>0?Math.min((targetPct/heightPct)*100,150):0}%;height:2px;background:rgba(232,255,71,0.6);display:${targetPct>0?'block':'none'}"></div>
+          <div style="position:absolute;left:-1px;right:-1px;bottom:${heightPct>0?Math.min((targetPct/heightPct)*100,150):0}%;height:2px;background:rgba(200,178,122,0.6);display:${targetPct>0?'block':'none'}"></div>
         </div>
       </div>
       <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${isCurrentWeek?'var(--accent)':'var(--text3)'};margin-top:3px">${label}</div>
