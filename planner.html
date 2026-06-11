@@ -590,13 +590,15 @@ async function openWeekDetail(weekIdx) {
   const wStart = getWeekStart(weekIdx);
   const ph = PHASES[week.phase];
   document.getElementById('wd-title').innerHTML = `Week ${weekIdx+1} · <span style="color:${ph.color}">${ph.label}</span> · ${fmtShort(wStart)}`;
+  const aiBtn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
+  if (aiBtn) aiBtn.textContent = weekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${weekIdx+1}` : '✦ AI Tune This Week';
   document.getElementById('week-detail').classList.add('open');
   document.getElementById('week-detail').scrollIntoView({behavior:'smooth',block:'start'});
 
-  // Load weather if this week is close enough (within 7 days of today)
+  // Load weather for any week within the 14-day forecast window
   const today = new Date(); today.setHours(0,0,0,0);
   const daysUntil = Math.floor((wStart - today) / (1000*60*60*24));
-  const isWeatherAvail = daysUntil >= 0 && daysUntil < 7;
+  const isWeatherAvail = daysUntil >= 0 && daysUntil < 14;
 
   if (isWeatherAvail && !weatherData.time) {
     document.getElementById('weather-loading-wd').style.display = 'flex';
@@ -611,6 +613,8 @@ function closeWeekDetail() {
   document.getElementById('week-detail').classList.remove('open');
   openWeekIdx = null;
   closeForm();
+  const aiBtn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
+  if (aiBtn) aiBtn.textContent = '✦ AI Tune This Week';
 }
 
 function renderDayCards(weekIdx, showWeather) {
@@ -650,7 +654,7 @@ function renderDayCards(weekIdx, showWeather) {
     if (wo) {
       workoutHtml = `<div class="dc-planned">
         <div class="dc-planned-type ${wo.type}">${wo.type}</div>
-        <div class="dc-dist">${wo.dist ? wo.dist+' mi' : ''} ${wo.name && wo.name !== wo.type ? wo.name : ''}</div>
+        <div class="dc-dist">${wo.dist ? wo.dist+' mi' : ''}${wo.name && wo.name !== wo.type && !wo.name.startsWith(wo.type+' ') ? ' · '+wo.name : ''}</div>
         ${wo.time ? `<div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--accent);margin-top:2px">${wo.time}</div>` : ''}
       </div>`;
     }
@@ -670,7 +674,7 @@ function runScore(tmax,tmin,precip,wind){const temp=(tmax+tmin)/2;let s=100;if(t
 
 async function loadWeather() {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weathercode&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=7`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weathercode&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=14`;
     const resp = await fetch(url);
     const json = await resp.json();
     weatherData = json.daily;
@@ -769,7 +773,7 @@ function deleteWorkout() {
 
 // ── AI TUNE THIS WEEK ─────────────────────────────────────
 async function generateWeekWithAI() {
-  const curIdx = currentWeekIdx();
+  const curIdx = openWeekIdx !== null ? openWeekIdx : currentWeekIdx();
   const week = PLAN[curIdx];
   const token = localStorage.getItem('strava_access_token');
   let recentStr = 'No Strava data.';
@@ -835,7 +839,7 @@ Respond with ONLY the JSON object below, no other text before or after it:
     else openWeekDetail(curIdx);
   } catch(e) { alert('AI failed: ' + e.message); }
 
-  btn.disabled = false; btn.textContent = '✦ AI Tune This Week';
+  btn.disabled = false; btn.textContent = openWeekIdx !== null && openWeekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${openWeekIdx+1}` : '✦ AI Tune This Week';
 }
 
 // ── LOCK WEEK DEFAULTS ────────────────────────────────────
