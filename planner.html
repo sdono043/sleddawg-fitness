@@ -815,24 +815,19 @@ Recent Strava: ${recentStr}
 Weather windows (pick the best for each run):
 ${windowSummary}
 
-Assign each run to a specific day and time window. Output JSON only — no explanation before or after:
-{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`},
-          {role:'assistant',content:'{"workouts":['}
+Respond with ONLY the JSON object below, no other text before or after it:
+{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`}
         ]
       })
     });
     const data = await resp.json();
-    // Reassemble prefilled response: Claude continues from '{"workouts":['
-    const rawText = '{"workouts":[' + data.content[0].text;
-    let plan;
-    try {
-      plan = JSON.parse(rawText.replace(/```json|```/g,'').trim());
-    } catch(_) {
-      // Fallback: find JSON object anywhere in the raw response
-      const match = data.content[0].text.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error('No valid schedule returned');
-      plan = JSON.parse(match[0]);
-    }
+    const responseText = data?.content?.[0]?.text;
+    if (!responseText) throw new Error('Empty response from AI: ' + JSON.stringify(data).slice(0, 200));
+    // Strip markdown fences, then extract the JSON object
+    const cleaned = responseText.replace(/```json|```/g, '').trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON found in response');
+    const plan = JSON.parse(match[0]);
     const planned = getPlannedWorkouts();
     plan.workouts.forEach(w => { planned[w.date] = {...w}; });
     savePlannedWorkouts(planned);
