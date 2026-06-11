@@ -104,6 +104,20 @@
   .wc-coaching-label{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--accent3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem;}
   .wc-coaching-text{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);line-height:1.5;}
 
+  .wc-strava{margin:0 1.5rem 1.5rem;padding:0.875rem;background:rgba(252,76,2,0.06);border-left:2px solid #fc4c02;}
+  .wc-strava-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;}
+  .wc-strava-label{font-family:'DM Mono',monospace;font-size:0.6rem;color:#fc4c02;text-transform:uppercase;letter-spacing:0.08em;}
+  .wc-strava-link{font-family:'DM Mono',monospace;font-size:0.6rem;color:#fc4c02;text-decoration:none;opacity:0.7;}
+  .wc-strava-link:hover{opacity:1;}
+  .wc-strava-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;margin-bottom:0.5rem;}
+  .wc-strava-stats{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  .wc-strava-stat .label{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.15rem;}
+  .wc-strava-stat .value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);}
+  .wc-strava-stat .unit{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);margin-left:0.2rem;}
+  .wc-strava-delta{font-family:'DM Mono',monospace;font-size:0.6rem;margin-left:0.35rem;}
+  .wc-strava-delta.over{color:var(--teal);}
+  .wc-strava-delta.under{color:var(--accent2);}
+
   .wc-actions{display:flex;gap:0.5rem;padding:1.25rem 1.5rem;border-top:1px solid var(--border);align-items:center;}
   .btn-save{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1.25rem;background:var(--accent3);color:var(--bg);border:none;cursor:pointer;transition:opacity 0.15s;}
   .btn-save:hover{opacity:0.85;}
@@ -204,6 +218,96 @@ let selectedDist = 1500;
 let selectedType = 'mix';
 let currentWorkout = null;
 let activeHistoryId = null;
+let stravaSwims = [];
+
+function swimPace(movingTime, distanceM) {
+  if (!distanceM) return '—';
+  const secsper100 = (movingTime / distanceM) * 100;
+  const mins = Math.floor(secsper100 / 60);
+  const secs = Math.round(secsper100 % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+}
+
+function fmtTime(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = Math.round(secs % 60).toString().padStart(2, '0');
+  return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${s}` : `${m}:${s}`;
+}
+
+function stravaSwimForDate(dateStr) {
+  return stravaSwims.filter(a => {
+    const d = (a.start_date_local || a.start_date || '').split('T')[0];
+    return d === dateStr;
+  });
+}
+
+function renderStravaResult(activity, plannedDistance) {
+  const actual = Math.round(activity.distance);
+  const delta = actual - plannedDistance;
+  const deltaStr = delta >= 0
+    ? `<span class="wc-strava-delta over">+${delta}m</span>`
+    : `<span class="wc-strava-delta under">${delta}m</span>`;
+  const poolStr = activity.pool_length ? `${activity.pool_length}m pool` : 'open water';
+  return `
+    <div class="wc-strava">
+      <div class="wc-strava-header">
+        <span class="wc-strava-label">Strava Result</span>
+        <a class="wc-strava-link" href="https://www.strava.com/activities/${activity.id}" target="_blank" rel="noopener">View on Strava ↗</a>
+      </div>
+      <div class="wc-strava-name">${activity.name}</div>
+      <div class="wc-strava-stats">
+        <div class="wc-strava-stat">
+          <div class="label">Distance</div>
+          <div class="value">${actual}<span class="unit">m</span>${deltaStr}</div>
+        </div>
+        <div class="wc-strava-stat">
+          <div class="label">Time</div>
+          <div class="value">${fmtTime(activity.moving_time)}</div>
+        </div>
+        <div class="wc-strava-stat">
+          <div class="label">Avg Pace</div>
+          <div class="value">${swimPace(activity.moving_time, activity.distance)}<span class="unit">/100m</span></div>
+        </div>
+        ${activity.pool_length ? `
+        <div class="wc-strava-stat">
+          <div class="label">Pool</div>
+          <div class="value">${activity.pool_length}<span class="unit">m</span></div>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+async function loadStravaSwims() {
+  const token = localStorage.getItem('strava_access_token');
+  if (!token) return;
+  try {
+    const activities = await fetchActivities(token, 100);
+    stravaSwims = activities.filter(a =>
+      a.type === 'Swim' || a.sport_type === 'Swim' || a.sport_type === 'PoolSwim'
+    );
+    autoLinkHistory();
+    if (currentWorkout) renderWorkout(currentWorkout, false);
+  } catch(e) { /* fail silently */ }
+}
+
+function autoLinkHistory() {
+  const workouts = getWorkouts();
+  let changed = false;
+  const updated = workouts.map(wo => {
+    if (wo.stravaActivityId) return wo;
+    const matches = stravaSwimForDate(wo.date);
+    if (matches.length === 1) {
+      changed = true;
+      return { ...wo, stravaActivityId: matches[0].id };
+    }
+    return wo;
+  });
+  if (changed) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    renderHistory();
+  }
+}
 
 function getSelectedStrokes() {
   return Array.from(document.querySelectorAll('#stroke-checks input:checked')).map(c => c.value);
@@ -357,6 +461,10 @@ function renderWorkout(wo, isNew) {
         </div>`).join('')}
     </div>`).join('');
 
+  const linkedActivity = wo.stravaActivityId
+    ? stravaSwims.find(a => a.id === wo.stravaActivityId)
+    : stravaSwimForDate(wo.date)[0];
+
   document.getElementById('workout-display').innerHTML = `
     <div class="workout-card">
       <div class="wc-header">
@@ -376,6 +484,7 @@ function renderWorkout(wo, isNew) {
         <div class="wc-coaching-label">Coach's Note</div>
         <div class="wc-coaching-text">${wo.coaching}</div>
       </div>` : ''}
+      ${linkedActivity ? renderStravaResult(linkedActivity, wo.distance) : ''}
       <div class="wc-actions">
         ${isNew
           ? `<button class="btn-save" onclick="saveCurrentWorkout()">Save to History</button>`
@@ -440,12 +549,14 @@ Return ONLY valid JSON with no other text:
     const wo = JSON.parse(raw);
 
     const today = new Date().toISOString().split('T')[0];
+    const todaySwim = stravaSwimForDate(today)[0];
     currentWorkout = {
       ...wo,
       id: `sw-${Date.now()}`,
       date: today,
       distance: selectedDist,
       strokes,
+      ...(todaySwim ? {stravaActivityId: todaySwim.id} : {}),
     };
 
     renderWorkout(currentWorkout, true);
@@ -462,6 +573,7 @@ Return ONLY valid JSON with no other text:
 }
 
 renderHistory();
+loadStravaSwims();
 </script>
 <script src="local-config.js" onerror="void 0"></script>
 <script src="nav.js"></script>
