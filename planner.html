@@ -487,7 +487,10 @@ function renderMacroTable() {
       <td><div class="workout-pills">${pills}</div></td>
       <td><span class="week-key">${week.workouts.focus.split('.')[0]}.</span></td>
       <td><span class="actual-badge upcoming" id="${actualId}">—</span></td>
-      <td><button class="view-btn" onclick="openWeekDetail(${i})">View Week →</button></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="view-btn" onclick="openWeekDetail(${i})">View →</button>
+        <button class="view-btn" style="color:var(--accent);border-color:rgba(232,255,71,0.35)" onclick="tuneWeekWithAI(${i})">✦ Tune</button>
+      </div></td>
     </tr>`;
   }).join('');
 }
@@ -772,6 +775,11 @@ function deleteWorkout() {
 }
 
 // ── AI TUNE THIS WEEK ─────────────────────────────────────
+async function tuneWeekWithAI(weekIdx) {
+  await openWeekDetail(weekIdx);
+  generateWeekWithAI();
+}
+
 async function generateWeekWithAI() {
   const curIdx = openWeekIdx !== null ? openWeekIdx : currentWeekIdx();
   const week = PLAN[curIdx];
