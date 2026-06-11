@@ -179,39 +179,13 @@
 <div id="nav-placeholder"></div>
 
 <main>
-  <!-- RACE BANNER -->
-  <div class="race-banner">
-    <div class="rb-left">
-      <h2>GREENSPRINGS <span>24</span></h2>
-      <p>Williamsburg, VA · Oct 24, 2026 · 24-hour loop course · 2.215 mi loops · Flat crushed gravel</p>
-    </div>
-    <div class="rb-stats">
-      <div class="rb-stat">
-        <div class="label">Goal</div>
-        <div class="value">100 <span>miles</span></div>
-      </div>
-      <div class="rb-stat">
-        <div class="label">Loops needed</div>
-        <div class="value">~45 <span>loops</span></div>
-      </div>
-      <div class="rb-stat">
-        <div class="label">Weeks out</div>
-        <div class="value" id="weeks-out">—</div>
-      </div>
-      <div class="rb-stat">
-        <div class="label">Required pace</div>
-        <div class="value">2.5 <span>mph avg</span></div>
-      </div>
-    </div>
-  </div>
-
   <!-- PHASE TABS -->
   <div class="phase-nav" id="phase-nav"></div>
 
   <!-- MACRO PLAN TABLE -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">25-Week Training Plan</span>
+      <span class="panel-title">19-Week Training Plan</span>
       <div style="display:flex;gap:0.75rem;align-items:center">
         <span class="panel-badge">Race: Oct 24, 2026</span>
         <button class="btn-ghost" style="padding:0.35rem 0.875rem;font-size:0.75rem" onclick="lockAllWeeks()" id="lock-all-btn">⬇ Lock Full Plan</button>
@@ -241,7 +215,7 @@
   <div class="panel" id="base-recap-panel" style="display:none;margin-bottom:1.5rem">
     <div class="panel-header">
       <span class="panel-title">Base Phase · Plan vs Strava</span>
-      <span class="panel-badge">Weeks 1–9 · May 3 – Jun 27</span>
+      <span class="panel-badge">Weeks 1–6 · Jun 7 – Jul 18</span>
     </div>
     <div style="display:grid;grid-template-columns:70px 130px 70px 1fr 80px;gap:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">
       <span>Week</span><span>Dates</span><span>Phase</span><span>Miles</span><span>Status</span>
@@ -272,6 +246,10 @@
         <input type="date" id="f-date"/>
       </div>
       <div class="form-field">
+        <label>Planned Window</label>
+        <input type="text" id="f-time" placeholder="e.g. 5:00am or 7:30pm"/>
+      </div>
+      <div class="form-field">
         <label>Workout Type</label>
         <select id="f-type">
           <option value="Easy">Easy Run</option>
@@ -290,14 +268,14 @@
         <input type="number" id="f-dist" placeholder="0" step="0.5" min="0"/>
       </div>
       <div class="form-field">
-        <label>Target Pace (/mi) or Time</label>
+        <label>Target Pace (/mi)</label>
         <input type="text" id="f-pace" placeholder="e.g. 10:30 or 3h"/>
       </div>
-      <div class="form-field" style="grid-column:span 2">
+      <div class="form-field" style="grid-column:span 3">
         <label>Workout Name</label>
-        <input type="text" id="f-name" placeholder="e.g. Back-to-back Saturday long run"/>
+        <input type="text" id="f-name" placeholder="e.g. Friday long run"/>
       </div>
-      <div class="form-field" style="grid-column:span 2">
+      <div class="form-field" style="grid-column:span 4">
         <label>Notes / Instructions</label>
         <textarea id="f-notes" placeholder="Effort level, route, nutrition reminders..."></textarea>
       </div>
@@ -309,45 +287,6 @@
     </div>
   </div>
 
-  <!-- RACE-SPECIFIC TIPS -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Greensprings 24 · Race Strategy</span>
-      <span class="panel-badge">Loop course</span>
-    </div>
-    <div class="tips-grid">
-      <div class="tip-card">
-        <div class="tip-icon">🔄</div>
-        <div class="tip-title">Loop Psychology</div>
-        <div class="tip-body">2.215 mi loops means you'll see your gear every ~25 min. Use this — restock food/water every 2-3 loops. Set mini-goals of 5 loops at a time, not 100 miles.</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">🌙</div>
-        <div class="tip-title">Night Running</div>
-        <div class="tip-body">Race starts 8am, so miles 50-70 hit around 2-4am. Train night runs in weeks 14-16. Your training plan includes them. Headlamp required.</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">⚡</div>
-        <div class="tip-title">Pacing for 100</div>
-        <div class="tip-body">2.5 mph average = 24 min per loop. That's a slow jog/fast walk. Start at 3.5 mph and walk to 2 mph by mile 70+. Run/walk from mile 1 — don't wait until you're forced to.</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">🍬</div>
-        <div class="tip-title">Nutrition (per the plan)</div>
-        <div class="tip-body">220-240 cal/hour. ~4 miles per hour = fuel every loop. Test your exact race-day food in training. Skittles + soft granola bars proven for this course.</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">🏕️</div>
-        <div class="tip-title">Base Camp Setup</div>
-        <div class="tip-body">Loop check-in is 50 yards from parking. Set up a tent with: drop bags per loop count, chair, multiple shoe changes, dry socks every 4-6 hours, headlamp + backup.</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">🦵</div>
-        <div class="tip-title">Flat Course Training</div>
-        <div class="tip-body">No elevation required, but repetitive flat can destroy quads differently than trails. Add road miles late in training. Practice your exact run/walk intervals on flat ground.</div>
-      </div>
-    </div>
-  </div>
 </main>
 
 <script src="local-config.js" onerror="void 0"></script>
@@ -356,117 +295,97 @@
 const RACE_DATE = new Date('2026-10-24T08:00:00');
 const LAT = 37.5407, LON = -77.4360;
 let weatherData = {};
+let weatherHourly = null;
 let openWeekIdx = null;
 let editingDate = null;
 
-// ── TRAINING PLAN (25 weeks, race Oct 24 2026) ────────────
-// Week 1 starts May 3 2026 (Sunday of May 4 week)
+// ── TRAINING PLAN (19 weeks, race Oct 24 2026) ────────────
+// Week 1 starts Jun 7 2026
 const PLAN = [
-  // PRE-BASE (Wk 1-5, May 3 – Jun 6)
-  {phase:'base', miles:25, key:'Baseline week', workouts:{
-    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 5', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 10',
-    focus:'First structured week. All runs conversational pace.'
+  // BASE PHASE (Wk 1-6, Jun 7 – Jul 18)
+  {phase:'base', miles:34, key:'Entry base week', workouts:{
+    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 6', Thu:'Easy 8', Fri:'Rest', Sat:'LSD 15',
+    focus:'Establish your base. All runs fully conversational. Lock in your routine and run days.'
   }},
-  {phase:'base', miles:28, key:'Build volume', workouts:{
-    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 6', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 12',
-    focus:'Build weekly volume. Focus on time on feet, not pace.'
+  {phase:'base', miles:41, key:'Build long run', workouts:{
+    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 8', Thu:'Easy 10', Fri:'Rest', Sat:'LSD 18',
+    focus:'First real long run. Practice eating every 4 miles. Time on feet over pace.'
   }},
-  {phase:'base', miles:22, key:'Recovery week', workouts:{
-    Sun:'Rest', Mon:'Easy 4', Tue:'Rest', Wed:'Easy 4', Thu:'Rest', Fri:'Easy 4', Sat:'LSD 10',
-    focus:'First cutback week. Consolidate the base you\'ve built.'
+  {phase:'base', miles:44, key:'LSD 20 milestone', workouts:{
+    Sun:'Rest', Mon:'Easy 6', Tue:'Rest', Wed:'Easy 8', Thu:'Easy 10', Fri:'Rest', Sat:'LSD 20',
+    focus:'First 20-miler. Carry full nutrition and hydration. Run to finish, not pace.'
   }},
-  {phase:'base', miles:25, key:'Resume building', workouts:{
-    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 6', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 12',
-    focus:'Resume building. Practice nutrition on long runs.'
+  {phase:'base', miles:50, key:'Push to 22 long', workouts:{
+    Sun:'Rest', Mon:'Easy 6', Tue:'Rest', Wed:'Easy 10', Thu:'Easy 12', Fri:'Rest', Sat:'LSD 22',
+    focus:'50-mile week. Strong foundation. Stay patient on the long run — save energy for the back half.'
   }},
-  {phase:'base', miles:28, key:'Bridge to plan', workouts:{
-    Sun:'Rest', Mon:'Easy 5', Tue:'Rest', Wed:'Easy 6', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 12',
-    focus:'Final pre-plan week. Dial in your routine.'
+  {phase:'base', miles:58, key:'Medium-long + LSD 25', workouts:{
+    Sun:'Rest', Mon:'Easy 8', Tue:'Rest', Wed:'Easy 10', Thu:'Easy 15', Fri:'Rest', Sat:'LSD 25',
+    focus:'First 25-miler. Thursday is medium-long effort — not a recovery jog. Fuel every 45–60 min.'
   }},
-  // BASE PHASE (Wk 6-9, Jun 7 – Jul 4)
-  {phase:'base', miles:35, key:'4×Easy + LSD 12', workouts:{
-    Sun:'Rest', Mon:'Easy 6', Tue:'Easy 5', Wed:'Easy 7', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 12',
-    focus:'Establish aerobic base. Every run conversational pace. Practice eating every 4 miles.'
+  {phase:'base', miles:43, key:'Recovery week', workouts:{
+    Sun:'Rest', Mon:'Easy 8', Tue:'Rest', Wed:'Easy 10', Thu:'Easy 10', Fri:'Rest', Sat:'LSD 15',
+    focus:'Pull back. Let your legs absorb the last 5 weeks. Sleep more than usual.'
   }},
-  {phase:'base', miles:38, key:'4×Easy + LSD 15', workouts:{
-    Sun:'Rest', Mon:'Easy 6', Tue:'Easy 5', Wed:'Easy 7', Thu:'Easy 5', Fri:'Rest', Sat:'LSD 15',
-    focus:'Add a 4th run day. Start tracking nutrition in runs over 8 miles.'
+  // BUILD PHASE (Wk 7-8, Jul 19 – Aug 1)
+  {phase:'build', miles:65, key:'LSD 28 — biggest easy week', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 12', Thu:'Easy 15', Fri:'Rest', Sat:'LSD 28',
+    focus:'Biggest run so far. Treat the 28 as a race preview. Eat/drink exactly what you will on Oct 24.'
   }},
-  {phase:'base', miles:42, key:'Tempo intro + LSD 18', workouts:{
-    Sun:'Rest', Mon:'Easy 6', Tue:'Easy 6', Wed:'Tempo 7', Thu:'Easy 5', Fri:'Rest', Sat:'LSD 18',
-    focus:'First tempo. Keep it at 80% effort, not race pace. LSD stays fully easy.'
+  {phase:'build', miles:50, key:'First meaningful stack', workouts:{
+    Sun:'Rest', Mon:'Easy 8', Tue:'Rest', Wed:'Easy 12', Thu:'Rest', Fri:'LSD 20', Sat:'B2B 10',
+    focus:'First back-to-back. Long run Friday, recovery run Saturday simulates race-day fatigue. Stay easy Saturday.'
   }},
-  {phase:'base', miles:30, key:'Recovery week', workouts:{
-    Sun:'Rest', Mon:'Easy 5', Tue:'Easy 4', Wed:'Easy 5', Thu:'Rest', Fri:'Easy 4', Sat:'LSD 12',
-    focus:'Recovery week — every 4th week backs off 25-30%. Let the body adapt.'
+  // ULTRA-SPECIFIC PHASE (Wk 9-12, Aug 2 – Aug 29)
+  {phase:'race-specific', miles:54, key:'Stack 20+12', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 12', Thu:'Rest', Fri:'LSD 20', Sat:'B2B 12',
+    focus:'Running on tired legs is the most race-specific training you can do. Saturday B2B should feel controlled.'
   }},
-  // BUILD PHASE (Wk 10-13, Jul 5 – Aug 1)
-  {phase:'build', miles:46, key:'First B2B', workouts:{
-    Sun:'B2B 10', Mon:'Rest', Tue:'Easy 7', Wed:'Tempo 7', Thu:'Easy 6', Fri:'Rest', Sat:'LSD 16',
-    focus:'Back-to-back weekend starts. Saturday long + Sunday medium = race fatigue simulation.'
+  {phase:'race-specific', miles:62, key:'Stack 25+12', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 15', Thu:'Rest', Fri:'LSD 25', Sat:'B2B 12',
+    focus:'Wednesday is medium-long effort. The 25+12 weekend stack is your first serious race simulation.'
   }},
-  {phase:'build', miles:50, key:'B2B increase', workouts:{
-    Sun:'B2B 12', Mon:'Rest', Tue:'Easy 7', Wed:'Tempo 7', Thu:'Easy 6', Fri:'Rest', Sat:'LSD 18',
-    focus:'Increase B2B Sunday. Running on tired legs is the most race-specific training you can do.'
+  {phase:'race-specific', miles:65, key:'Stack 30+10', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 15', Thu:'Rest', Fri:'LSD 30', Sat:'B2B 10',
+    focus:'30 miles in one run. Expect to walk sections — that is correct and race-specific. Fuel every loop.'
   }},
-  {phase:'build', miles:54, key:'Night run intro', workouts:{
-    Sun:'B2B 14', Mon:'Rest', Tue:'Easy 7', Wed:'Night 8', Thu:'Easy 7', Fri:'Rest', Sat:'LSD 18',
-    focus:'First night run Wednesday. Headlamp required. Practice eating/drinking in the dark.'
+  {phase:'build', miles:48, key:'Recovery — stack 20+10', workouts:{
+    Sun:'Rest', Mon:'Easy 8', Tue:'Rest', Wed:'Easy 10', Thu:'Rest', Fri:'LSD 20', Sat:'B2B 10',
+    focus:'Recovery week. Stack is lighter — let your body consolidate the ultra-specific gains.'
   }},
-  {phase:'build', miles:38, key:'Recovery week', workouts:{
-    Sun:'B2B 10', Mon:'Rest', Tue:'Easy 6', Wed:'Easy 7', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 10',
-    focus:'Cutback week. Body consolidates gains from build phase. Sleep extra.'
+  // PEAK PHASE (Wk 13-16, Aug 30 – Sep 26)
+  {phase:'peak', miles:70, key:'Stack 30+15', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 15', Thu:'Rest', Fri:'LSD 30', Sat:'B2B 15',
+    focus:'30+15 is 45 miles across two days. Your legs will feel this week. That is the training effect.'
   }},
-  // PEAK PHASE (Wk 14-18, Aug 2 – Sep 5)
-  {phase:'peak', miles:60, key:'Peak opens', workouts:{
-    Sun:'B2B 16', Mon:'Rest', Tue:'Easy 8', Wed:'Tempo 8', Thu:'Easy 8', Fri:'Rest', Sat:'LSD 20',
-    focus:'Entering peak. B2B Sunday at 16 miles. Ice bath or cold shower after long efforts.'
+  {phase:'peak', miles:70, key:'Stack 35+10 — biggest single run', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 15', Thu:'Rest', Fri:'LSD 35', Sat:'B2B 10',
+    focus:'35 miles — your longest training run. This is your mental benchmark. You can do this. Stay fueled.'
   }},
-  {phase:'peak', miles:65, key:'Race-sim loops', workouts:{
-    Sun:'B2B 16', Mon:'Rest', Tue:'Easy 8', Wed:'Tempo 9', Thu:'Easy 8', Fri:'Rest', Sat:'LSD 24',
-    focus:'Race simulation Saturday — run 2.215mi loops, practice your walk/run intervals, eat race-day food.'
+  {phase:'peak', miles:75, key:'Stack 25+20 — 45mi in two days', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 20', Thu:'Rest', Fri:'LSD 25', Sat:'B2B 20',
+    focus:'Most important week of the plan. 45 miles Fri–Sat. Wednesday medium-long is your biggest midweek ever.'
   }},
-  {phase:'peak', miles:70, key:'Longest B2B', workouts:{
-    Sun:'B2B 18', Mon:'Rest', Tue:'Easy 9', Wed:'Night 10', Thu:'Easy 8', Fri:'Rest', Sat:'LSD 25',
-    focus:'Longest back-to-back. Night run Wednesday. Practice the 2am mental game.'
+  {phase:'peak', miles:70, key:'Final peak — stack 30+15', workouts:{
+    Sun:'Rest', Mon:'Easy 10', Tue:'Rest', Wed:'Easy 15', Thu:'Rest', Fri:'LSD 30', Sat:'B2B 15',
+    focus:'Final peak block. Wear your race kit. Practice your walk/run intervals on the Saturday B2B.'
   }},
-  {phase:'peak', miles:75, key:'Peak mileage week', workouts:{
-    Sun:'B2B 18', Mon:'Easy 8', Tue:'Easy 7', Wed:'Race-Sim 12', Thu:'Easy 8', Fri:'Rest', Sat:'LSD 24',
-    focus:'Highest mileage week ever. The Saturday 24-miler is your mental benchmark. You can do this.'
+  // TAPER (Wk 17-19, Sep 27 – Oct 17)
+  {phase:'taper', miles:33, key:'Begin taper', workouts:{
+    Sun:'Rest', Mon:'Easy 8', Tue:'Rest', Wed:'Easy 10', Thu:'Rest', Fri:'Rest', Sat:'LSD 15',
+    focus:'Taper begins. Legs may feel heavy or sluggish — both normal. Do not add miles. Trust your training.'
   }},
-  {phase:'peak', miles:50, key:'Recovery week', workouts:{
-    Sun:'B2B 12', Mon:'Rest', Tue:'Easy 7', Wed:'Easy 8', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 18',
-    focus:'Hard cutback after 4 peak weeks. Your body needs this. Trust the process.'
+  {phase:'taper', miles:24, key:'Deep taper', workouts:{
+    Sun:'Rest', Mon:'Easy 6', Tue:'Rest', Wed:'Easy 8', Thu:'Rest', Fri:'Rest', Sat:'Easy 10',
+    focus:'Cut volume aggressively. You will feel sluggish. That is the taper. Do not add miles. Finalize gear.'
   }},
-  // RACE-SPECIFIC (Wk 19-21, Sep 6 – Sep 26)
-  {phase:'race-specific', miles:65, key:'Night + race-sim', workouts:{
-    Sun:'B2B 16', Mon:'Rest', Tue:'Easy 8', Wed:'Night 10', Thu:'Easy 7', Fri:'Rest', Sat:'Race-Sim 24',
-    focus:'Saturday race simulation: start at 8am, run loops at race pace, walk/run intervals, eat race-day food.'
+  {phase:'taper', miles:11, key:'Race week shakeout', workouts:{
+    Sun:'Rest', Mon:'Easy 4', Tue:'Rest', Wed:'Easy 4', Thu:'Easy 3', Fri:'Rest', Sat:'Rest',
+    focus:'Final shakeout. Legs charged. Drop bags packed. Headlamp charged. Race starts Oct 24 at 8am.'
   }},
-  {phase:'race-specific', miles:58, key:'Final long effort', workouts:{
-    Sun:'B2B 14', Mon:'Rest', Tue:'Easy 7', Wed:'Night 8', Thu:'Easy 7', Fri:'Rest', Sat:'LSD 22',
-    focus:'Last big weekend. Wear race-day gear. Lock in shoe/sock/food choices — no changes after this.'
-  }},
-  {phase:'race-specific', miles:45, key:'Confidence week', workouts:{
-    Sun:'B2B 10', Mon:'Rest', Tue:'Easy 7', Wed:'Easy 7', Thu:'Rest', Fri:'Easy 5', Sat:'LSD 16',
-    focus:'Shorter efforts feel fast. Fight urge to push. Everything locked in: gear, food, drop bag list.'
-  }},
-  // TAPER (Wk 22-24, Sep 27 – Oct 17)
-  {phase:'taper', miles:30, key:'Begin taper', workouts:{
-    Sun:'Easy 8', Mon:'Rest', Tue:'Easy 5', Wed:'Easy 7', Thu:'Rest', Fri:'Easy 4', Sat:'Easy 6',
-    focus:'Taper begins. Legs may feel heavy or restless — both are normal. Trust your training.'
-  }},
-  {phase:'taper', miles:20, key:'Deep taper', workouts:{
-    Sun:'Easy 5', Mon:'Rest', Tue:'Easy 4', Wed:'Easy 5', Thu:'Rest', Fri:'Easy 3', Sat:'Easy 3',
-    focus:'Cut volume aggressively. You will feel sluggish. That is the taper. Do not add miles.'
-  }},
-  {phase:'taper', miles:12, key:'Race week prep', workouts:{
-    Sun:'Easy 4', Mon:'Rest', Tue:'Easy 3', Wed:'Easy 3', Thu:'Rest', Fri:'Easy 2', Sat:'Rest',
-    focus:'Arrive rested. Finalize drop bags Wednesday. Sleep, hydrate, eat clean starches. Headlamp charged.'
-  }},
-  // RACE WEEK (Wk 20)
+  // RACE WEEK (Oct 18-24)
   {phase:'race', miles:100, key:'GREENSPRINGS 24', workouts:{
-    Sun:'Rest', Mon:'Rest', Tue:'Easy 2', Wed:'Easy 2', Thu:'Rest', Fri:'Rest', Sat:'RACE DAY 🏁',
+    Sun:'Rest', Mon:'Rest', Tue:'Rest', Wed:'Rest', Thu:'Rest', Fri:'Rest', Sat:'RACE DAY 🏁',
     focus:'Race day Oct 24. Goal: 100 miles / ~45 loops. Start slow, run/walk from mile 1, fuel every loop.'
   }},
 ];
@@ -480,8 +399,8 @@ const PHASES = {
   race: { label: 'Race Week', color: 'var(--accent)', cls: 'race' },
 };
 
-// Week 1 = May 3 2026 (Sunday of May 4 week)
-const PLAN_START = new Date('2026-05-03T00:00:00');
+// Week 1 = Jun 7 2026
+const PLAN_START = new Date('2026-06-07T00:00:00');
 
 function getWeekStart(weekIdx) {
   const d = new Date(PLAN_START);
@@ -500,15 +419,6 @@ function currentWeekIdx() {
   const today = new Date(); today.setHours(0,0,0,0);
   const diff = Math.floor((today - PLAN_START) / (7*24*3600*1000));
   return Math.max(0, Math.min(diff, PLAN.length - 1));
-}
-
-// ── COUNTDOWN ─────────────────────────────────────────────
-function updateCountdown() {
-  const now = new Date();
-  const diffMs = RACE_DATE - now;
-  const diffDays = Math.ceil(diffMs / (1000*60*60*24));
-  const weeks = Math.floor(diffDays / 7);
-  document.getElementById('weeks-out').textContent = weeks > 0 ? weeks : '0';
 }
 
 // ── PHASE TABS ────────────────────────────────────────────
@@ -667,7 +577,7 @@ function renderBaseRecap(activities) {
   document.getElementById('base-recap-summary').innerHTML = `
     <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">Base Total</span>
     <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.5rem;color:${totalColor}">${totalActual.toFixed(1)}</span>
-    <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)">/ ${totalTarget} mi &nbsp;·&nbsp; ${weeksComplete}/4 weeks done</span>
+    <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)">/ ${totalTarget} mi &nbsp;·&nbsp; ${weeksComplete}/${baseWeeks.length} weeks done</span>
     <div style="flex:1;min-width:80px;height:4px;background:var(--surface3)"><div style="height:100%;width:${totalBarPct}%;background:${totalColor};transition:width 0.6s"></div></div>
     <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;color:${totalColor}">${Math.round(totalPct*100)}%</span>`;
   document.getElementById('base-recap-panel').style.display = 'block';
@@ -741,6 +651,7 @@ function renderDayCards(weekIdx, showWeather) {
       workoutHtml = `<div class="dc-planned">
         <div class="dc-planned-type ${wo.type}">${wo.type}</div>
         <div class="dc-dist">${wo.dist ? wo.dist+' mi' : ''} ${wo.name && wo.name !== wo.type ? wo.name : ''}</div>
+        ${wo.time ? `<div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--accent);margin-top:2px">${wo.time}</div>` : ''}
       </div>`;
     }
 
@@ -759,10 +670,47 @@ function runScore(tmax,tmin,precip,wind){const temp=(tmax+tmin)/2;let s=100;if(t
 
 async function loadWeather() {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=7`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weathercode&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=7`;
     const resp = await fetch(url);
-    weatherData = (await resp.json()).daily;
+    const json = await resp.json();
+    weatherData = json.daily;
+    weatherHourly = json.hourly;
   } catch(e) { console.warn('Weather load failed', e); }
+}
+
+function buildWindowSummary(wStart) {
+  if (!weatherHourly) return 'No hourly weather data.';
+  const DNAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return Array.from({length:7}, (_, di) => {
+    const d = new Date(wStart); d.setDate(d.getDate() + di);
+    const dateStr = isoDate(d);
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+    const getWindow = (hours) => {
+      const entries = hours.map(h => {
+        const t = `${dateStr}T${String(h).padStart(2,'0')}:00`;
+        const idx = weatherHourly.time.indexOf(t);
+        if (idx < 0) return null;
+        return {
+          temp: Math.round(weatherHourly.temperature_2m[idx]),
+          humidity: Math.round(weatherHourly.relativehumidity_2m[idx]),
+          precip: Math.round(weatherHourly.precipitation_probability[idx]),
+          wind: Math.round(weatherHourly.wind_speed_10m[idx])
+        };
+      }).filter(Boolean);
+      if (!entries.length) return null;
+      return {
+        temp: Math.round(entries.reduce((s,e)=>s+e.temp,0)/entries.length),
+        humidity: Math.round(entries.reduce((s,e)=>s+e.humidity,0)/entries.length),
+        precip: Math.max(...entries.map(e=>e.precip)),
+        wind: Math.round(entries.reduce((s,e)=>s+e.wind,0)/entries.length)
+      };
+    };
+    const morning = getWindow([3,4,5]);
+    const evening = !isWeekend ? getWindow([19,20]) : null;
+    const fmt = (w, label) => w ? `${label}: ${w.temp}°F ${w.humidity}%RH rain${w.precip}% wind${w.wind}mph` : '';
+    const windows = [fmt(morning,'3am start'), isWeekend ? '(weekend: AM only)' : fmt(evening,'7pm start')].filter(Boolean);
+    return `${DNAMES[d.getDay()]} ${dateStr}: ${windows.join(' | ')}`;
+  }).join('\n');
 }
 
 // ── FORM ──────────────────────────────────────────────────
@@ -773,6 +721,7 @@ function openForm(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   document.getElementById('form-title').textContent = `Workout · ${d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
   document.getElementById('f-date').value = dateStr;
+  document.getElementById('f-time').value = existing?.time || '';
   document.getElementById('f-type').value = existing?.type || 'Easy';
   document.getElementById('f-name').value = existing?.name || '';
   document.getElementById('f-dist').value = existing?.dist || '';
@@ -794,6 +743,7 @@ function saveWorkout() {
   if (!dateStr) return;
   const planned = getPlannedWorkouts();
   planned[dateStr] = {
+    time: document.getElementById('f-time').value,
     type: document.getElementById('f-type').value,
     name: document.getElementById('f-name').value,
     dist: document.getElementById('f-dist').value,
@@ -831,10 +781,10 @@ async function generateWeekWithAI() {
   }
 
   const wStart = getWeekStart(curIdx);
-  const weatherStr = weatherData.time ? weatherData.time.map((d,i) => {
-    const sc = runScore(weatherData.temperature_2m_max[i], weatherData.temperature_2m_min[i], (weatherData.precipitation_sum[i]||0)*25.4, weatherData.wind_speed_10m_max[i]*1.6);
-    return `${d}: ${Math.round(weatherData.temperature_2m_max[i])}°F ${sc.label}`;
-  }).join('; ') : 'No weather data';
+
+  // Fetch hourly weather if not already loaded
+  if (!weatherHourly) await loadWeather();
+  const windowSummary = buildWindowSummary(wStart);
 
   const btn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
   btn.disabled = true; btn.textContent = 'Generating...';
@@ -844,11 +794,30 @@ async function generateWeekWithAI() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:800,
-        system:`You are an ultra marathon coach specializing in 24-hour loop races.
+        model:'claude-sonnet-4-6', max_tokens:1000,
+        system:`You are an ultra marathon coach scheduling a training week around weather and the athlete's lifestyle.
+
+SCHEDULING RULES (non-negotiable):
+- Weekdays (Mon–Fri): runs may START in the early morning window (3–6am) OR the evening window (starting at 7pm). Pick whichever is cooler, lower humidity, and rain-free at the start time — runs will extend well beyond these windows and that is expected.
+- Weekends (Sat–Sun): early morning start ONLY (3–6am). No evening runs on weekends.
+- Long runs and back-to-back stacks should be placed on weekdays whenever possible. Reserve weekend slots for runs that can't fit the weekday schedule.
+- Evening starts on long runs are fine — the athlete is comfortable running through the night and finishing at 3am or later.
+- Assign the hardest/longest run to the single best weather window of the week, regardless of whether that's a morning or evening start.
+- Never schedule more than one run on the same day.
+- Skip rest days — do not emit them in the JSON.
+
 Return ONLY valid JSON, no other text:
-{"workouts":[{"date":"YYYY-MM-DD","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night|Rest","name":"name","dist":"X","pace":"M:SS","notes":"brief coaching note"}]}`,
-        messages:[{role:'user',content:`Training for Greensprings 24 (100 miles, Oct 24 2026, flat 2.215mi loops). Current week ${curIdx+1} of 20, phase: ${week.phase}, target: ${week.miles} miles. Focus: ${week.workouts.focus}. Recent runs: ${recentStr}. Weather: ${weatherStr}. Week starts ${isoDate(wStart)}. Optimize the 7-day schedule around weather, placing hard efforts on best days.`}]
+{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night|Rest","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`,
+        messages:[{role:'user',content:`Training for Greensprings 24 (100 miles, Oct 24 2026, flat 2.215mi loops).
+Week ${curIdx+1} of ${PLAN.length} · Phase: ${week.phase} · Target: ${week.miles} miles
+Runs this week: ${week.workouts.focus}
+Key workouts: ${Object.entries(week.workouts).filter(([k,v])=>k!=='focus'&&v!=='Rest').map(([k,v])=>v).join(', ')}
+Recent Strava: ${recentStr}
+
+Weather windows (pick the best for each run):
+${windowSummary}
+
+Assign each run to a specific day and time window. Return only the days that have runs (skip rest days).`}]
       })
     });
     const data = await resp.json();
@@ -913,7 +882,6 @@ function lockAllWeeks() {
 
 // ── INIT ──────────────────────────────────────────────────
 renderNav('planner');
-updateCountdown();
 renderPhaseTabs();
 renderMacroTable();
 
