@@ -229,6 +229,7 @@
     <div class="wd-header">
       <div class="wd-title" id="wd-title">Week Detail</div>
       <div style="display:flex;gap:0.75rem;align-items:center">
+        <button class="btn-primary" style="padding:0.3rem 0.875rem;font-size:0.75rem" onclick="generateWeekWithAI()" id="ai-tune-wd-btn">✦ AI Tune This Week</button>
         <button class="btn-ghost" style="padding:0.3rem 0.875rem;font-size:0.75rem" onclick="lockThisWeek()" id="lock-week-btn">⬇ Lock This Week</button>
         <button class="wd-close" onclick="closeWeekDetail()">×</button>
       </div>
@@ -590,8 +591,8 @@ async function openWeekDetail(weekIdx) {
   const wStart = getWeekStart(weekIdx);
   const ph = PHASES[week.phase];
   document.getElementById('wd-title').innerHTML = `Week ${weekIdx+1} · <span style="color:${ph.color}">${ph.label}</span> · ${fmtShort(wStart)}`;
-  const aiBtn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
-  if (aiBtn) aiBtn.textContent = weekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${weekIdx+1}` : '✦ AI Tune This Week';
+  const aiLabel = weekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${weekIdx+1}` : '✦ AI Tune This Week';
+  document.querySelectorAll('[onclick="generateWeekWithAI()"]').forEach(b => { b.textContent = aiLabel; });
   document.getElementById('week-detail').classList.add('open');
   document.getElementById('week-detail').scrollIntoView({behavior:'smooth',block:'start'});
 
@@ -613,8 +614,7 @@ function closeWeekDetail() {
   document.getElementById('week-detail').classList.remove('open');
   openWeekIdx = null;
   closeForm();
-  const aiBtn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
-  if (aiBtn) aiBtn.textContent = '✦ AI Tune This Week';
+  document.querySelectorAll('[onclick="generateWeekWithAI()"]').forEach(b => { b.textContent = '✦ AI Tune This Week'; });
 }
 
 function renderDayCards(weekIdx, showWeather) {
@@ -790,8 +790,9 @@ async function generateWeekWithAI() {
   if (!weatherHourly) await loadWeather();
   const windowSummary = buildWindowSummary(wStart);
 
-  const btn = document.querySelector('.btn-primary[onclick="generateWeekWithAI()"]');
-  btn.disabled = true; btn.textContent = 'Generating...';
+  const allAiBtns = document.querySelectorAll('[onclick="generateWeekWithAI()"]');
+  allAiBtns.forEach(b => { b.disabled = true; b.textContent = 'Generating...'; });
+  const btn = allAiBtns[0];
 
   try {
     const resp = await fetch('https://aged-silence-bd89.samuelwdonovan.workers.dev/', {
@@ -801,26 +802,29 @@ async function generateWeekWithAI() {
         model:'claude-sonnet-4-6', max_tokens:1000,
         system:`You are an ultra marathon coach scheduling a training week around weather and the athlete's lifestyle. You output ONLY raw JSON with no commentary, explanation, or markdown.
 
-SCHEDULING RULES (non-negotiable):
-- Weekdays (Mon–Fri): runs may START in the early morning window (3–6am) OR the evening window (starting at 7pm). Pick whichever is cooler, lower humidity, and rain-free at the start time — runs will extend well beyond these windows and that is expected.
+CRITICAL RULE: You must schedule EXACTLY the runs listed under "Runs to schedule" — one JSON entry per run, no more, no less. Do not add extra runs, do not split runs, do not change distances.
+
+SCHEDULING RULES:
+- Weekdays (Mon–Fri): runs may START in the early morning window (3–6am) OR the evening window (starting at 7pm). Pick whichever is cooler, lower humidity, and rain-free at the start time.
 - Weekends (Sat–Sun): early morning start ONLY (3–6am). No evening runs on weekends.
-- Long runs and back-to-back stacks should be placed on weekdays whenever possible. Reserve weekend slots for runs that can't fit the weekday schedule.
-- Evening starts on long runs are fine — the athlete is comfortable running through the night and finishing at 3am or later.
-- Assign the hardest/longest run to the single best weather window of the week, regardless of whether that's a morning or evening start.
-- Never schedule more than one run on the same day.
-- Skip rest days — do not include them in the output.`,
+- Long runs and back-to-back stacks should be placed on weekdays whenever possible.
+- Evening starts on long runs are fine — the athlete is comfortable running through the night.
+- Assign the hardest/longest run to the best weather window of the week.
+- Never schedule more than one run on the same day.`,
         messages:[
           {role:'user',content:`Training for Greensprings 24 (100 miles, Oct 24 2026, flat 2.215mi loops).
 Week ${curIdx+1} of ${PLAN.length} · Phase: ${week.phase} · Target: ${week.miles} miles
-Runs this week: ${week.workouts.focus}
-Key workouts: ${Object.entries(week.workouts).filter(([k,v])=>k!=='focus'&&v!=='Rest').map(([k,v])=>v).join(', ')}
+
+Runs to schedule (EXACTLY these ${Object.entries(week.workouts).filter(([k,v])=>k!=='focus'&&v!=='Rest').length}, no more, no less):
+${Object.entries(week.workouts).filter(([k,v])=>k!=='focus'&&v!=='Rest').map(([,v])=>'- '+v).join('\n')}
+
 Recent Strava: ${recentStr}
 
-Weather windows (pick the best for each run):
+Weather windows for each day (pick best window per run):
 ${windowSummary}
 
-Respond with ONLY the JSON object below, no other text before or after it:
-{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`}
+Output ONLY this JSON, no other text:
+{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night","name":"short name","dist":"X","notes":"1-sentence coaching note"}]}`}
         ]
       })
     });
@@ -839,7 +843,8 @@ Respond with ONLY the JSON object below, no other text before or after it:
     else openWeekDetail(curIdx);
   } catch(e) { alert('AI failed: ' + e.message); }
 
-  btn.disabled = false; btn.textContent = openWeekIdx !== null && openWeekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${openWeekIdx+1}` : '✦ AI Tune This Week';
+  const doneLabel = openWeekIdx !== null && openWeekIdx !== currentWeekIdx() ? `✦ AI Tune Week ${openWeekIdx+1}` : '✦ AI Tune This Week';
+  allAiBtns.forEach(b => { b.disabled = false; b.textContent = doneLabel; });
 }
 
 // ── LOCK WEEK DEFAULTS ────────────────────────────────────
