@@ -466,11 +466,11 @@ function renderMacroTable() {
     // Actual from Strava — will fill in via JS after load
     const actualId = `actual-${i}`;
 
-    // Key workout pills
+    // Key workout pills (exclude 'focus' key)
     const pillMap = { LSD:'lsd', B2B:'b2b', Tempo:'tempo', Easy:'easy', Rest:'rest', 'Race-Sim':'race-sim', Night:'night' };
-    const pills = Object.values(week.workouts)
-      .filter(v => v !== 'Rest' && v !== 'rest')
-      .map(v => {
+    const pills = Object.entries(week.workouts)
+      .filter(([k, v]) => k !== 'focus' && v !== 'Rest' && v !== 'rest')
+      .map(([, v]) => {
         const type = Object.keys(pillMap).find(k => v.toLowerCase().includes(k.toLowerCase())) || 'easy';
         return `<span class="pill ${pillMap[type]||'easy'}">${v}</span>`;
       }).slice(0,5).join('');
@@ -881,6 +881,14 @@ function lockAllWeeks() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
+// ── PLAN VERSION GUARD ───────────────────────────────────
+// When the plan changes, clear stale saved workouts so old dates don't bleed into new weeks
+const PLAN_VERSION = '2026-06-07-v1';
+if (localStorage.getItem('plan_version') !== PLAN_VERSION) {
+  localStorage.removeItem('planned_workouts');
+  localStorage.setItem('plan_version', PLAN_VERSION);
+}
+
 renderNav('planner');
 renderPhaseTabs();
 renderMacroTable();
