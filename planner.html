@@ -795,7 +795,7 @@ async function generateWeekWithAI() {
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
-        system:`You are an ultra marathon coach scheduling a training week around weather and the athlete's lifestyle.
+        system:`You are an ultra marathon coach scheduling a training week around weather and the athlete's lifestyle. You output ONLY raw JSON with no commentary, explanation, or markdown.
 
 SCHEDULING RULES (non-negotiable):
 - Weekdays (Mon–Fri): runs may START in the early morning window (3–6am) OR the evening window (starting at 7pm). Pick whichever is cooler, lower humidity, and rain-free at the start time — runs will extend well beyond these windows and that is expected.
@@ -804,11 +804,9 @@ SCHEDULING RULES (non-negotiable):
 - Evening starts on long runs are fine — the athlete is comfortable running through the night and finishing at 3am or later.
 - Assign the hardest/longest run to the single best weather window of the week, regardless of whether that's a morning or evening start.
 - Never schedule more than one run on the same day.
-- Skip rest days — do not emit them in the JSON.
-
-Return ONLY valid JSON, no other text:
-{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night|Rest","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`,
-        messages:[{role:'user',content:`Training for Greensprings 24 (100 miles, Oct 24 2026, flat 2.215mi loops).
+- Skip rest days — do not include them in the output.`,
+        messages:[
+          {role:'user',content:`Training for Greensprings 24 (100 miles, Oct 24 2026, flat 2.215mi loops).
 Week ${curIdx+1} of ${PLAN.length} · Phase: ${week.phase} · Target: ${week.miles} miles
 Runs this week: ${week.workouts.focus}
 Key workouts: ${Object.entries(week.workouts).filter(([k,v])=>k!=='focus'&&v!=='Rest').map(([k,v])=>v).join(', ')}
@@ -817,11 +815,24 @@ Recent Strava: ${recentStr}
 Weather windows (pick the best for each run):
 ${windowSummary}
 
-Assign each run to a specific day and time window. Return only the days that have runs (skip rest days).`}]
+Assign each run to a specific day and time window. Output JSON only — no explanation before or after:
+{"workouts":[{"date":"YYYY-MM-DD","time":"H:MMam","type":"Easy|LSD|B2B|Tempo|Race-Sim|Night","name":"short name","dist":"X","pace":"M:SS","notes":"1-sentence coaching note"}]}`},
+          {role:'assistant',content:'{"workouts":['}
+        ]
       })
     });
     const data = await resp.json();
-    const plan = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    // Reassemble prefilled response: Claude continues from '{"workouts":['
+    const rawText = '{"workouts":[' + data.content[0].text;
+    let plan;
+    try {
+      plan = JSON.parse(rawText.replace(/```json|```/g,'').trim());
+    } catch(_) {
+      // Fallback: find JSON object anywhere in the raw response
+      const match = data.content[0].text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No valid schedule returned');
+      plan = JSON.parse(match[0]);
+    }
     const planned = getPlannedWorkouts();
     plan.workouts.forEach(w => { planned[w.date] = {...w}; });
     savePlannedWorkouts(planned);
