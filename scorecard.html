@@ -274,15 +274,7 @@ function renderScorecard() {
   const { start, end } = getWeekBounds(weekOffset);
   const planWeek = getPlanWeekForDate(start);
   const planned = getPlannedWorkouts();
-
-  // Sum stored workouts for this week (respects AI-tuned mileage); fall back to plan base miles
-  let storedWeekMiles = 0;
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start); d.setDate(d.getDate() + i);
-    const p = planned[isoDate(d)];
-    if (p && p.dist) storedWeekMiles += parseFloat(p.dist);
-  }
-  const goal = storedWeekMiles > 0 ? storedWeekMiles : (planWeek ? planWeek.miles : getWeeklyGoal());
+  const goal = planWeek ? planWeek.miles : getWeeklyGoal();
 
   // Week label
   const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

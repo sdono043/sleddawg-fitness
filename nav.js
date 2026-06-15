@@ -147,7 +147,7 @@ function getPlanWeekForDate(weekStart) {
 }
 
 // Clear stale planned_workouts whenever the plan changes — runs on every page
-const _PLAN_VERSION = '2026-06-07-v1';
+const _PLAN_VERSION = '2026-06-07-v2';
 if (localStorage.getItem('plan_version') !== _PLAN_VERSION) {
   localStorage.removeItem('planned_workouts');
   localStorage.setItem('plan_version', _PLAN_VERSION);
