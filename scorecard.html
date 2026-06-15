@@ -346,7 +346,16 @@ function heroBox(label, value, sub, color, status, pct) {
 }
 
 // ── DAY TABLE ─────────────────────────────────────────────
+const _PLAN_DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function parsePlanWorkout(raw) {
+  if (!raw || raw === 'Rest') return null;
+  const typeMatch = raw.match(/^(Easy|LSD|B2B|Tempo|Race-Sim|Night|Walk|Strength)/);
+  const distMatch = raw.match(/\s(\d+(?:\.\d+)?)$/);
+  return { type: typeMatch ? typeMatch[1] : 'Run', name: raw, dist: distMatch ? distMatch[1] : '' };
+}
+
 function renderDayTable(weekStart, weekActs, planned) {
+  const planWeek = getPlanWeekForDate(weekStart);
   const days = Array.from({length:7}, (_, i) => {
     const d = new Date(weekStart); d.setDate(d.getDate() + i);
     return d;
@@ -363,8 +372,11 @@ function renderDayTable(weekStart, weekActs, planned) {
 
   const rows = days.map(d => {
     const key = isoDate(d);
+    // Fall back to base TRAINING_PLAN workout for this day if nothing stored
+    const storedPlan = planned[key];
+    const basePlan = planWeek ? parsePlanWorkout(planWeek.workouts[_PLAN_DAYS[d.getDay()]]) : null;
+    const plan = storedPlan || basePlan;
     const acts = actByDay[key] || [];
-    const plan = planned[key];
     const isPast = d < today;
     const isToday = d.getTime() === today.getTime();
 

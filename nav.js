@@ -145,3 +145,10 @@ function getPlanWeekForDate(weekStart) {
   if (weekIdx < 0 || weekIdx >= TRAINING_PLAN.length) return null;
   return { weekNum: weekIdx + 1, weekIdx, ...TRAINING_PLAN[weekIdx] };
 }
+
+// Clear stale planned_workouts whenever the plan changes — runs on every page
+const _PLAN_VERSION = '2026-06-07-v1';
+if (localStorage.getItem('plan_version') !== _PLAN_VERSION) {
+  localStorage.removeItem('planned_workouts');
+  localStorage.setItem('plan_version', _PLAN_VERSION);
+}
