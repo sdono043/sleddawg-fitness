@@ -108,40 +108,35 @@ function saveWeeklyGoal(miles) {
 }
 
 // ── TRAINING PLAN ─────────────────────────────────────────
-const TRAINING_PLAN_START = new Date('2026-05-03T00:00:00'); // week of May 4
+// 19-week plan, Week 1 = Jun 7 2026, Race = Oct 24 2026
+const TRAINING_PLAN_START = new Date('2026-06-07T00:00:00');
 const TRAINING_PLAN = [
-  // PRE-BASE (W1–5, May 3 – Jun 6)
-  {phase:'base',          miles:25,  key:'Baseline week',      workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 10',    focus:'First structured week. All runs conversational pace.'}},
-  {phase:'base',          miles:28,  key:'Build volume',       workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Build weekly volume. Focus on time on feet, not pace.'}},
-  {phase:'base',          miles:22,  key:'Recovery week',      workouts:{Sun:'Rest',Mon:'Easy 4',Tue:'Rest',Wed:'Easy 4',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 10',    focus:'First cutback week. Consolidate the base you\'ve built.'}},
-  {phase:'base',          miles:25,  key:'Resume building',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Resume building. Practice nutrition on long runs.'}},
-  {phase:'base',          miles:28,  key:'Bridge to plan',     workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Final pre-plan week. Dial in your routine.'}},
-  // BASE (W6–9, Jun 7 – Jun 27)
-  {phase:'base',          miles:25,  key:'3×Easy + LSD 10',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 10',    focus:'Establish aerobic base. Every run conversational pace.'}},
-  {phase:'base',          miles:28,  key:'3×Easy + LSD 12',    workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',    focus:'Add miles gradually. Track nutrition on runs over 8 miles.'}},
-  {phase:'base',          miles:30,  key:'B2B Intro + Tempo',  workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Tempo 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 12',   focus:'First tempo. 80% effort, not race pace.'}},
-  {phase:'base',          miles:22,  key:'Recovery week',      workouts:{Sun:'Rest',Mon:'Easy 4',Tue:'Rest',Wed:'Easy 4',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 10',    focus:'Recovery week — back off 25%. Let the body adapt.'}},
-  // BUILD (W5–8)
-  {phase:'build',         miles:33,  key:'First B2B',          workouts:{Sun:'B2B 10',Mon:'Rest',Tue:'Easy 5',Wed:'Tempo 5',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 13', focus:'Back-to-back weekend starts.'}},
-  {phase:'build',         miles:36,  key:'B2B increase',       workouts:{Sun:'B2B 12',Mon:'Rest',Tue:'Easy 5',Wed:'Tempo 6',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 14', focus:'Increase B2B Sunday. Run on tired legs.'}},
-  {phase:'build',         miles:38,  key:'Night run intro',    workouts:{Sun:'B2B 12',Mon:'Rest',Tue:'Easy 6',Wed:'Night 6',Thu:'Rest',Fri:'Easy 6',Sat:'LSD 14', focus:'First night run Wednesday. Headlamp required.'}},
-  {phase:'build',         miles:26,  key:'Recovery week',      workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 12',    focus:'Cutback week. Sleep extra.'}},
-  // PEAK (W9–13)
-  {phase:'peak',          miles:42,  key:'Peak B2B + Tempo',   workouts:{Sun:'B2B 14',Mon:'Rest',Tue:'Easy 6',Wed:'Tempo 6',Thu:'Rest',Fri:'Easy 6',Sat:'LSD 16', focus:'Entering peak. Ice bath after both long days.'}},
-  {phase:'peak',          miles:45,  key:'Race-sim loops',     workouts:{Sun:'B2B 14',Mon:'Rest',Tue:'Easy 6',Wed:'Race-Sim 8',Thu:'Rest',Fri:'Easy 7',Sat:'LSD 18',focus:'Race simulation — 2.215mi loops, walk/run intervals.'}},
-  {phase:'peak',          miles:48,  key:'Longest B2B',        workouts:{Sun:'B2B 16',Mon:'Rest',Tue:'Easy 6',Wed:'Night 8',Thu:'Rest',Fri:'Easy 8',Sat:'LSD 18', focus:'Longest back-to-back. Night run Wednesday.'}},
-  {phase:'peak',          miles:50,  key:'Peak mileage week',  workouts:{Sun:'B2B 18',Mon:'Rest',Tue:'Easy 6',Wed:'Race-Sim 10',Thu:'Rest',Fri:'Easy 6',Sat:'LSD 20',focus:'Highest mileage week. Saturday 20 miler is your benchmark.'}},
-  {phase:'peak',          miles:35,  key:'Recovery week',      workouts:{Sun:'B2B 10',Mon:'Rest',Tue:'Easy 5',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 10',  focus:'Hard cutback after 3 peak weeks. Trust the process.'}},
-  // RACE-SPECIFIC (W14–16)
-  {phase:'race-specific', miles:44,  key:'Night + race-sim',   workouts:{Sun:'B2B 14',Mon:'Rest',Tue:'Easy 6',Wed:'Night 10',Thu:'Rest',Fri:'Easy 4',Sat:'Race-Sim 20',focus:'Saturday race sim: loops at race pace, race-day food.'}},
-  {phase:'race-specific', miles:40,  key:'Final long effort',  workouts:{Sun:'B2B 12',Mon:'Rest',Tue:'Easy 5',Wed:'Night 8',Thu:'Rest',Fri:'Easy 5',Sat:'LSD 20', focus:'Last big weekend. Lock in gear and food choices.'}},
-  {phase:'race-specific', miles:30,  key:'Confidence week',    workouts:{Sun:'B2B 10',Mon:'Rest',Tue:'Easy 5',Wed:'Easy 6',Thu:'Rest',Fri:'Easy 4',Sat:'LSD 15',  focus:'Shorter efforts feel fast. Fight urge to push.'}},
-  // TAPER (W17–19)
-  {phase:'taper',         miles:22,  key:'Begin taper',        workouts:{Sun:'Easy 6',Mon:'Rest',Tue:'Easy 4',Wed:'Easy 5',Thu:'Rest',Fri:'Easy 4',Sat:'Easy 8',  focus:'Taper begins. Trust your training.'}},
-  {phase:'taper',         miles:16,  key:'Deep taper',         workouts:{Sun:'Easy 4',Mon:'Rest',Tue:'Easy 3',Wed:'Easy 4',Thu:'Rest',Fri:'Easy 3',Sat:'Easy 6',  focus:'Cut volume aggressively. Do not add miles.'}},
-  {phase:'taper',         miles:10,  key:'Race week prep',     workouts:{Sun:'Easy 3',Mon:'Rest',Tue:'Easy 2',Wed:'Easy 3',Thu:'Rest',Fri:'Easy 2',Sat:'Rest',    focus:'Arrive rested. Sleep, hydrate, eat clean starches.'}},
+  // BASE PHASE (Wk 1-6, Jun 7 – Jul 18)
+  {phase:'base',          miles:34,  key:'Entry base week',              workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 6',Thu:'Easy 8',Fri:'Rest',Sat:'LSD 15',    focus:'Establish your base. All runs fully conversational. Lock in your routine and run days.'}},
+  {phase:'base',          miles:41,  key:'Build long run',               workouts:{Sun:'Rest',Mon:'Easy 5',Tue:'Rest',Wed:'Easy 8',Thu:'Easy 10',Fri:'Rest',Sat:'LSD 18',   focus:'First real long run. Practice eating every 4 miles. Time on feet over pace.'}},
+  {phase:'base',          miles:44,  key:'LSD 20 milestone',             workouts:{Sun:'Rest',Mon:'Easy 6',Tue:'Rest',Wed:'Easy 8',Thu:'Easy 10',Fri:'Rest',Sat:'LSD 20',   focus:'First 20-miler. Carry full nutrition and hydration. Run to finish, not pace.'}},
+  {phase:'base',          miles:50,  key:'Push to 22 long',              workouts:{Sun:'Rest',Mon:'Easy 6',Tue:'Rest',Wed:'Easy 10',Thu:'Easy 12',Fri:'Rest',Sat:'LSD 22',  focus:'50-mile week. Strong foundation. Stay patient on the long run — save energy for the back half.'}},
+  {phase:'base',          miles:58,  key:'Medium-long + LSD 25',         workouts:{Sun:'Rest',Mon:'Easy 8',Tue:'Rest',Wed:'Easy 10',Thu:'Easy 15',Fri:'Rest',Sat:'LSD 25',  focus:'First 25-miler. Thursday is medium-long effort — not a recovery jog. Fuel every 45–60 min.'}},
+  {phase:'base',          miles:43,  key:'Recovery week',                workouts:{Sun:'Rest',Mon:'Easy 8',Tue:'Rest',Wed:'Easy 10',Thu:'Easy 10',Fri:'Rest',Sat:'LSD 15',  focus:'Pull back. Let your legs absorb the last 5 weeks. Sleep more than usual.'}},
+  // BUILD PHASE (Wk 7-8, Jul 19 – Aug 1)
+  {phase:'build',         miles:65,  key:'LSD 28 — biggest easy week',   workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 12',Thu:'Easy 15',Fri:'Rest',Sat:'LSD 28', focus:'Biggest run so far. Treat the 28 as a race preview. Eat/drink exactly what you will on Oct 24.'}},
+  {phase:'build',         miles:50,  key:'First meaningful stack',        workouts:{Sun:'Rest',Mon:'Easy 8',Tue:'Rest',Wed:'Easy 12',Thu:'Rest',Fri:'LSD 20',Sat:'B2B 10',  focus:'First back-to-back. Long run Friday, recovery run Saturday simulates race-day fatigue. Stay easy Saturday.'}},
+  // ULTRA-SPECIFIC PHASE (Wk 9-12, Aug 2 – Aug 29)
+  {phase:'race-specific', miles:54,  key:'Stack 20+12',                  workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 12',Thu:'Rest',Fri:'LSD 20',Sat:'B2B 12', focus:'Running on tired legs is the most race-specific training you can do. Saturday B2B should feel controlled.'}},
+  {phase:'race-specific', miles:62,  key:'Stack 25+12',                  workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 15',Thu:'Rest',Fri:'LSD 25',Sat:'B2B 12', focus:'Wednesday is medium-long effort. The 25+12 weekend stack is your first serious race simulation.'}},
+  {phase:'race-specific', miles:65,  key:'Stack 30+10',                  workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 15',Thu:'Rest',Fri:'LSD 30',Sat:'B2B 10', focus:'30 miles in one run. Expect to walk sections — that is correct and race-specific. Fuel every loop.'}},
+  {phase:'build',         miles:48,  key:'Recovery — stack 20+10',       workouts:{Sun:'Rest',Mon:'Easy 8',Tue:'Rest',Wed:'Easy 10',Thu:'Rest',Fri:'LSD 20',Sat:'B2B 10',  focus:'Recovery week. Stack is lighter — let your body consolidate the ultra-specific gains.'}},
+  // PEAK PHASE (Wk 13-16, Aug 30 – Sep 26)
+  {phase:'peak',          miles:70,  key:'Stack 30+15',                  workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 15',Thu:'Rest',Fri:'LSD 30',Sat:'B2B 15', focus:'30+15 is 45 miles across two days. Your legs will feel this week. That is the training effect.'}},
+  {phase:'peak',          miles:70,  key:'Stack 35+10 — biggest single run', workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 15',Thu:'Rest',Fri:'LSD 35',Sat:'B2B 10', focus:'35 miles — your longest training run. This is your mental benchmark. You can do this. Stay fueled.'}},
+  {phase:'peak',          miles:75,  key:'Stack 25+20 — 45mi in two days', workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 20',Thu:'Rest',Fri:'LSD 25',Sat:'B2B 20', focus:'Most important week of the plan. 45 miles Fri–Sat. Wednesday medium-long is your biggest midweek ever.'}},
+  {phase:'peak',          miles:70,  key:'Final peak — stack 30+15',     workouts:{Sun:'Rest',Mon:'Easy 10',Tue:'Rest',Wed:'Easy 15',Thu:'Rest',Fri:'LSD 30',Sat:'B2B 15', focus:'Final peak block. Wear your race kit. Practice your walk/run intervals on the Saturday B2B.'}},
+  // TAPER (Wk 17-19, Sep 27 – Oct 17)
+  {phase:'taper',         miles:33,  key:'Begin taper',                  workouts:{Sun:'Rest',Mon:'Easy 8',Tue:'Rest',Wed:'Easy 10',Thu:'Rest',Fri:'Rest',Sat:'LSD 15',    focus:'Taper begins. Legs may feel heavy or sluggish — both normal. Do not add miles. Trust your training.'}},
+  {phase:'taper',         miles:24,  key:'Deep taper',                   workouts:{Sun:'Rest',Mon:'Easy 6',Tue:'Rest',Wed:'Easy 8',Thu:'Rest',Fri:'Rest',Sat:'Easy 10',    focus:'Cut volume aggressively. You will feel sluggish. That is the taper. Do not add miles. Finalize gear.'}},
+  {phase:'taper',         miles:11,  key:'Race week shakeout',           workouts:{Sun:'Rest',Mon:'Easy 4',Tue:'Rest',Wed:'Easy 4',Thu:'Easy 3',Fri:'Rest',Sat:'Rest',     focus:'Final shakeout. Legs charged. Drop bags packed. Headlamp charged. Race starts Oct 24 at 8am.'}},
   // RACE (W20)
-  {phase:'race',          miles:100, key:'GREENSPRINGS 24',    workouts:{Sun:'Rest',Mon:'Rest',Tue:'Easy 2',Wed:'Easy 2',Thu:'Rest',Fri:'Rest',Sat:'RACE DAY 🏁', focus:'Race day Oct 24. Start slow, run/walk from mile 1.'}},
+  {phase:'race',          miles:100, key:'GREENSPRINGS 24',              workouts:{Sun:'Rest',Mon:'Rest',Tue:'Rest',Wed:'Rest',Thu:'Rest',Fri:'Rest',Sat:'RACE DAY 🏁',    focus:'Race day Oct 24. Goal: 100 miles / ~45 loops. Start slow, run/walk from mile 1, fuel every loop.'}},
 ];
 
 function getPlanWeekForDate(weekStart) {
