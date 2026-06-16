@@ -503,12 +503,7 @@ function renderHRZones(weekActs, hasHR) {
     return;
   }
 
-  if (hasHR) {
-    el.innerHTML = emptyRows + `<div class="hr-note" style="padding-top:0.75rem">Strava HR detected — zone breakdown requires activity streams upgrade.</div>`;
-    return;
-  }
-
-  // No HR data at all — show Log button
+  // No manual entry — always show Log button (Strava HR flag doesn't give zone data)
   const defaultDate = weekActs.length ? isoDate(new Date(weekActs[0].start_date_local)) : isoDate(new Date());
   el.innerHTML = emptyRows + `
     <div style="padding-top:0.875rem;text-align:center">
