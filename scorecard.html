@@ -232,6 +232,7 @@
 let allActivities = [];
 let weekOffset = 0;
 let selectedDate = null;
+const stravaZonesCache = {}; // activityId → zones data
 
 // ── WEEK HELPERS ──────────────────────────────────────────
 function getWeekBounds(offset = 0) {
@@ -269,7 +270,22 @@ async function loadScorecard() {
 
 function changeWeek(dir) {
   weekOffset += dir;
+  selectedDate = null;
   renderScorecard();
+}
+
+async function fetchStravaZones(activityId) {
+  if (stravaZonesCache[activityId] !== undefined) return stravaZonesCache[activityId];
+  const token = localStorage.getItem('strava_access_token');
+  if (!token) return null;
+  try {
+    const r = await fetch(`https://www.strava.com/api/v3/activities/${activityId}/zones`,
+      { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) { stravaZonesCache[activityId] = null; return null; }
+    const data = await r.json();
+    stravaZonesCache[activityId] = data;
+    return data;
+  } catch { stravaZonesCache[activityId] = null; return null; }
 }
 
 
@@ -317,12 +333,13 @@ function renderScorecard() {
   const statusLabel = pct >= 1 ? (planWeek ? '✓ Plan Met' : '✓ Goal Met') : pct >= 0.6 ? 'On Track' : pct > 0 ? 'Behind Plan' : 'Not Started';
 
   // Hero stats
-  const pm = Math.floor(avgPaceSecs/60), ps = Math.round(avgPaceSecs%60).toString().padStart(2,'0');
+  let pm = Math.floor(avgPaceSecs/60), ps = Math.round(avgPaceSecs%60); if (ps===60){pm++;ps=0;}
+  const psStr = ps.toString().padStart(2,'0');
   document.getElementById('hero-stats').innerHTML = `
     ${heroBox('Miles Logged', totalMi.toFixed(1), `of ${goal} mi ${planWeek ? 'planned' : 'goal'}`, color, statusLabel, pct)}
     ${heroBox('Activities', weekActs.length, `${runs.length} run${runs.length!==1?'s':''}`, weekActs.length > 0 ? 'green' : 'neutral', weekActs.length > 0 ? 'Active' : 'No activity', weekActs.length / 7)}
     ${heroBox('Elevation', totalElev.toLocaleString(), 'feet gained', totalElev > 500 ? 'green' : 'neutral', totalElev > 0 ? 'Logged' : '—', Math.min(totalElev/2000, 1))}
-    ${heroBox('Avg Pace', avgPaceSecs > 0 ? `${pm}:${ps}` : '—', 'per mile', 'neutral', runs.length > 0 ? 'Runs only' : 'No runs', 0)}`;
+    ${heroBox('Avg Pace', avgPaceSecs > 0 ? `${pm}:${psStr}` : '—', 'per mile', 'neutral', runs.length > 0 ? 'Runs only' : 'No runs', 0)}`;
 
   // Reset selected date if it falls outside the current week
   if (selectedDate) {
@@ -424,12 +441,25 @@ function renderDayTable(weekStart, weekActs, planned) {
     </div>` + rows.join('');
 }
 
-function selectDay(dateKey) {
+async function selectDay(dateKey) {
   selectedDate = selectedDate === dateKey ? null : dateKey;
   const { start, end } = getWeekBounds(weekOffset);
   const weekActs = activitiesInWeek(allActivities, start, end);
   renderDayTable(start, weekActs, getPlannedWorkouts());
   renderHRZones(weekActs);
+
+  // If selecting a day with a Strava HR activity, fetch zone data
+  if (selectedDate) {
+    const act = weekActs.find(a =>
+      isoDate(new Date(a.start_date_local)) === selectedDate && a.has_heartrate);
+    if (act) {
+      document.getElementById('hr-zones').insertAdjacentHTML('beforeend',
+        `<div id="hr-loading" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);padding-top:0.5rem">fetching Strava zones…</div>`);
+      const data = await fetchStravaZones(act.id);
+      document.getElementById('hr-loading')?.remove();
+      if (data) renderHRZones(weekActs); // re-render with zone data now cached
+    }
+  }
 }
 
 // ── STREAK ────────────────────────────────────────────────
@@ -515,11 +545,32 @@ function renderHRZones(weekActs) {
 
   // ── Selected day view ──────────────────────────────────
   if (selectedDate) {
-    const entry = manualHR[selectedDate];
     const d = new Date(selectedDate + 'T00:00:00');
     const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
     badge.textContent = label;
 
+    // Check Strava zones cache first
+    const dayAct = weekActs.find(a =>
+      isoDate(new Date(a.start_date_local)) === selectedDate && a.has_heartrate);
+    const stravaData = dayAct ? stravaZonesCache[dayAct.id] : undefined;
+
+    if (stravaData?.heart_rate?.zones?.length) {
+      const sz = stravaData.heart_rate.zones;
+      // Strava returns up to 5 zones; map by index
+      const times = HR_ZONES.map((_, i) => sz[i]?.time || 0);
+      const avgHr = dayAct.average_heartrate ? Math.round(dayAct.average_heartrate) : null;
+      el.innerHTML = zoneRows(times) + `
+        <div style="padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
+            ${avgHr ? avgHr+' bpm avg · ' : ''}Strava
+          </span>
+          <button class="btn-ghost" style="font-size:0.7rem;padding:0.2rem 0.6rem" onclick="showHRForm('${selectedDate}')">Override</button>
+        </div>`;
+      return;
+    }
+
+    // Fall back to manual entry
+    const entry = manualHR[selectedDate];
     if (entry) {
       const times = HR_ZONES.map(z => parseMMSS(entry[z.key]));
       el.innerHTML = zoneRows(times) + `

@@ -30,10 +30,11 @@ function metersToMiles(m) { return m * 0.000621371; }
 function metersToFeet(m)  { return Math.round(m * 3.28084); }
 function secsToPace(secs, meters) {
   if (!meters || meters < 10) return '—';
-  const secsPerMile = secs / metersToMiles(meters);
-  const mins = Math.floor(secsPerMile / 60);
-  const s = Math.round(secsPerMile % 60).toString().padStart(2, '0');
-  return `${mins}:${s}`;
+  let secsPerMile = secs / metersToMiles(meters);
+  let mins = Math.floor(secsPerMile / 60);
+  let s = Math.round(secsPerMile % 60);
+  if (s === 60) { mins++; s = 0; }
+  return `${mins}:${s.toString().padStart(2, '0')}`;
 }
 function formatDuration(secs) {
   const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60);
