@@ -438,30 +438,123 @@ function renderStreak() {
 }
 
 // ── HR ZONES ──────────────────────────────────────────────
+const HR_ZONES = [
+  { key:'z1', name:'Z1 Recovery',  range:'<132',    color:'#5ab0e8' },
+  { key:'z2', name:'Z2 Aerobic',   range:'133–144', color:'#c8b27a' },
+  { key:'z3', name:'Z3 Tempo',     range:'145–156', color:'#ffbb00' },
+  { key:'z4', name:'Z4 Threshold', range:'157–168', color:'#e8834a' },
+  { key:'z5', name:'Z5 Max',       range:'169+',    color:'#ff4444' },
+];
+
+function getManualHR() {
+  try { return JSON.parse(localStorage.getItem('manual_hr_data') || '{}'); } catch { return {}; }
+}
+function saveManualHR(obj) { localStorage.setItem('manual_hr_data', JSON.stringify(obj)); }
+function parseMMSS(str) {
+  if (!str) return 0;
+  const p = String(str).split(':');
+  return p.length === 2 ? parseInt(p[0]||0)*60 + parseInt(p[1]||0) : parseInt(str)||0;
+}
+
 function renderHRZones(weekActs, hasHR) {
   const el = document.getElementById('hr-zones');
-  if (!hasHR) {
-    el.innerHTML = `<div class="hr-note">Heart rate data not available.<br>Enable HR sharing in your Strava app settings on Apple Watch to unlock zone tracking.</div>`;
+  const { start } = getWeekBounds(weekOffset);
+
+  // Check for manually logged HR this week
+  const manualHR = getManualHR();
+  let weekEntry = null, weekEntryDate = null;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const k = isoDate(d);
+    if (manualHR[k]) { weekEntry = manualHR[k]; weekEntryDate = k; break; }
+  }
+
+  const zoneRows = (times) => {
+    const total = times.reduce((s, t) => s + t, 0) || 1;
+    return HR_ZONES.map((z, i) => {
+      const secs = times[i];
+      const pct = Math.round((secs / total) * 100);
+      const mm = Math.floor(secs / 60), ss = (secs % 60).toString().padStart(2,'0');
+      return `<div class="hr-zone-row">
+        <span class="hz-label" style="color:${z.color}">${z.name}</span>
+        <span class="hz-range">${z.range} bpm</span>
+        <div class="hz-bar-track"><div class="hz-bar" style="background:${z.color};width:${pct}%"></div></div>
+        <span class="hz-pct">${secs > 0 ? mm+':'+ss : '—'}</span>
+      </div>`;
+    }).join('');
+  };
+
+  const emptyRows = HR_ZONES.map(z => `<div class="hr-zone-row">
+    <span class="hz-label" style="color:${z.color}">${z.name}</span>
+    <span class="hz-range">${z.range} bpm</span>
+    <div class="hz-bar-track"><div class="hz-bar" style="background:${z.color};width:0%"></div></div>
+    <span class="hz-pct">—</span>
+  </div>`).join('');
+
+  if (weekEntry) {
+    const times = HR_ZONES.map(z => parseMMSS(weekEntry[z.key]));
+    el.innerHTML = zoneRows(times) + `
+      <div style="padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
+          ${weekEntry.avgHr ? weekEntry.avgHr+' bpm avg · ' : ''}Apple Fitness · ${weekEntryDate}
+        </span>
+        <button class="btn-ghost" style="font-size:0.7rem;padding:0.2rem 0.6rem" onclick="showHRForm('${weekEntryDate}')">Edit</button>
+      </div>`;
     return;
   }
 
-  // Zones based on ~180 max HR (will be personalized once we have data)
-  const zones = [
-    { name: 'Z1 Recovery', range: '<115', color: '#5ab0e8', min: 0, max: 115 },
-    { name: 'Z2 Aerobic',  range: '115–138', color: '#c8b27a', min: 115, max: 138 },
-    { name: 'Z3 Tempo',    range: '138–152', color: '#ffbb00', min: 138, max: 152 },
-    { name: 'Z4 Threshold',range: '152–165', color: '#e8c868', min: 152, max: 165 },
-    { name: 'Z5 Max',      range: '165+',   color: '#ff4444', min: 165, max: 999 },
-  ];
+  if (hasHR) {
+    el.innerHTML = emptyRows + `<div class="hr-note" style="padding-top:0.75rem">Strava HR detected — zone breakdown requires activity streams upgrade.</div>`;
+    return;
+  }
 
-  // Placeholder — shows "enable HR" note per zone since we don't have stream data yet
-  el.innerHTML = zones.map(z => `
-    <div class="hr-zone-row">
-      <span class="hz-label" style="color:${z.color}">${z.name}</span>
-      <span class="hz-range">${z.range} bpm</span>
-      <div class="hz-bar-track"><div class="hz-bar" style="background:${z.color};width:0%"></div></div>
-      <span class="hz-pct">—</span>
-    </div>`).join('') + `<div class="hr-note" style="padding-top:0.75rem">Enable heart rate on Strava to see time in zones.</div>`;
+  // No HR data at all — show Log button
+  const defaultDate = weekActs.length ? isoDate(new Date(weekActs[0].start_date_local)) : isoDate(new Date());
+  el.innerHTML = emptyRows + `
+    <div style="padding-top:0.875rem;text-align:center">
+      <button class="btn-ghost" style="font-size:0.75rem;padding:0.35rem 1rem" onclick="showHRForm('${defaultDate}')">+ Log HR from Apple Fitness</button>
+    </div>`;
+}
+
+function showHRForm(date) {
+  const el = document.getElementById('hr-zones');
+  const existing = getManualHR()[date] || {};
+  const inp = (id, val, ph) => `<input id="${id}" type="text" value="${val||''}" placeholder="${ph}"
+    style="width:64px;background:var(--surface);border:1px solid var(--border2);color:var(--text);
+           padding:0.3rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;text-align:center">`;
+  el.innerHTML = `
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);margin-bottom:0.75rem">
+      Log Apple Fitness HR · ${date}
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem">
+      <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);width:110px">Avg Heart Rate</span>
+      ${inp('hr-avg', existing.avgHr, '161')}
+      <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)">bpm</span>
+    </div>
+    ${HR_ZONES.map((z,i) => `
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.4rem">
+      <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:${z.color};width:110px">${z.name} ${z.range}</span>
+      ${inp('hr-z'+(i+1), existing[z.key], '0:00')}
+      <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">mm:ss</span>
+    </div>`).join('')}
+    <div style="display:flex;gap:0.5rem;margin-top:0.875rem">
+      <button class="btn-primary" style="font-size:0.75rem;padding:0.3rem 0.875rem" onclick="saveHRForm('${date}')">Save</button>
+      <button class="btn-ghost"   style="font-size:0.75rem;padding:0.3rem 0.875rem" onclick="renderScorecard()">Cancel</button>
+    </div>`;
+}
+
+function saveHRForm(date) {
+  const data = getManualHR();
+  data[date] = {
+    avgHr: document.getElementById('hr-avg').value,
+    z1: document.getElementById('hr-z1').value,
+    z2: document.getElementById('hr-z2').value,
+    z3: document.getElementById('hr-z3').value,
+    z4: document.getElementById('hr-z4').value,
+    z5: document.getElementById('hr-z5').value,
+  };
+  saveManualHR(data);
+  renderScorecard();
 }
 
 // ── HISTORY CHART ─────────────────────────────────────────
