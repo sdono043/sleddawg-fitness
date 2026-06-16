@@ -86,6 +86,9 @@
   .day-row{display:grid;grid-template-columns:90px 60px 1fr 1fr 80px;gap:0.75rem;align-items:center;padding:0.625rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;}
   .day-row:last-child{border-bottom:none;}
   .day-row.header{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding-bottom:0.5rem;}
+  .day-row.clickable{cursor:pointer;border-radius:3px;margin:0 -0.5rem;padding-left:0.5rem;padding-right:0.5rem;}
+  .day-row.clickable:hover{background:rgba(200,178,122,0.06);}
+  .day-row.selected{background:rgba(200,178,122,0.1);border-left:2px solid var(--accent);padding-left:calc(0.5rem - 2px);}
   .dr-day{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text2);}
   .dr-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.65rem;text-transform:uppercase;padding:0.15rem 0.4rem;text-align:center;}
   .dr-type.Run{background:rgba(200,178,122,0.15);color:var(--accent);}
@@ -204,7 +207,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Heart Rate Zones</span>
-            <span class="panel-badge">This week</span>
+            <span class="panel-badge" id="hr-badge">This week</span>
           </div>
           <div id="hr-zones"></div>
         </div>
@@ -228,6 +231,7 @@
 <script>
 let allActivities = [];
 let weekOffset = 0;
+let selectedDate = null;
 
 // ── WEEK HELPERS ──────────────────────────────────────────
 function getWeekBounds(offset = 0) {
@@ -320,9 +324,15 @@ function renderScorecard() {
     ${heroBox('Elevation', totalElev.toLocaleString(), 'feet gained', totalElev > 500 ? 'green' : 'neutral', totalElev > 0 ? 'Logged' : '—', Math.min(totalElev/2000, 1))}
     ${heroBox('Avg Pace', avgPaceSecs > 0 ? `${pm}:${ps}` : '—', 'per mile', 'neutral', runs.length > 0 ? 'Runs only' : 'No runs', 0)}`;
 
+  // Reset selected date if it falls outside the current week
+  if (selectedDate) {
+    const sd = new Date(selectedDate + 'T00:00:00');
+    if (sd < start || sd > end) selectedDate = null;
+  }
+
   renderDayTable(start, weekActs, planned);
   renderStreak();
-  renderHRZones(weekActs, hasHR);
+  renderHRZones(weekActs);
   renderHistoryChart();
 }
 
@@ -391,12 +401,20 @@ function renderDayTable(weekStart, weekActs, planned) {
     const plannedStr = plan ? `${plan.type}${plannedMi ? ' '+plannedMi+'mi' : ''}` : '—';
     const actualStr = acts.length ? `${actType||'?'} ${actualMi.toFixed(1)}mi` : isPast ? '—' : '';
 
-    return `<div class="day-row${isToday?' today-row':''}">
+    // Rows with an activity or manual HR entry are clickable
+    const manualHR = getManualHR();
+    const hasHRForDay = !!manualHR[key];
+    const isClickable = acts.length > 0 || hasHRForDay;
+    const isSelected = selectedDate === key;
+    const cls = ['day-row', isToday ? 'today-row' : '', isClickable ? 'clickable' : '', isSelected ? 'selected' : ''].filter(Boolean).join(' ');
+    const click = isClickable ? `onclick="selectDay('${key}')"` : '';
+
+    return `<div class="${cls}" ${click}>
       <span class="dr-day">${dayLabel}</span>
       <span class="dr-type ${actType||'—'}">${actType||'—'}</span>
       <span class="dr-planned">${plannedStr}</span>
       <span class="dr-actual ${statusCls}">${actualStr}</span>
-      <span class="dr-status ${statusCls}">${statusTxt}</span>
+      <span class="dr-status ${statusCls}">${hasHRForDay && !isSelected ? '♥' : statusTxt}</span>
     </div>`;
   });
 
@@ -404,6 +422,14 @@ function renderDayTable(weekStart, weekActs, planned) {
     <div class="day-row header">
       <span>Day</span><span>Type</span><span>Planned</span><span>Actual</span><span>Status</span>
     </div>` + rows.join('');
+}
+
+function selectDay(dateKey) {
+  selectedDate = selectedDate === dateKey ? null : dateKey;
+  const { start, end } = getWeekBounds(weekOffset);
+  const weekActs = activitiesInWeek(allActivities, start, end);
+  renderDayTable(start, weekActs, getPlannedWorkouts());
+  renderHRZones(weekActs);
 }
 
 // ── STREAK ────────────────────────────────────────────────
@@ -456,18 +482,11 @@ function parseMMSS(str) {
   return p.length === 2 ? parseInt(p[0]||0)*60 + parseInt(p[1]||0) : parseInt(str)||0;
 }
 
-function renderHRZones(weekActs, hasHR) {
+function renderHRZones(weekActs) {
   const el = document.getElementById('hr-zones');
+  const badge = document.getElementById('hr-badge');
   const { start } = getWeekBounds(weekOffset);
-
-  // Check for manually logged HR this week
   const manualHR = getManualHR();
-  let weekEntry = null, weekEntryDate = null;
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start); d.setDate(d.getDate() + i);
-    const k = isoDate(d);
-    if (manualHR[k]) { weekEntry = manualHR[k]; weekEntryDate = k; break; }
-  }
 
   const zoneRows = (times) => {
     const total = times.reduce((s, t) => s + t, 0) || 1;
@@ -484,31 +503,69 @@ function renderHRZones(weekActs, hasHR) {
     }).join('');
   };
 
-  const emptyRows = HR_ZONES.map(z => `<div class="hr-zone-row">
+  const emptyRows = (logDate) => HR_ZONES.map(z => `<div class="hr-zone-row">
     <span class="hz-label" style="color:${z.color}">${z.name}</span>
     <span class="hz-range">${z.range} bpm</span>
     <div class="hz-bar-track"><div class="hz-bar" style="background:${z.color};width:0%"></div></div>
     <span class="hz-pct">—</span>
-  </div>`).join('');
+  </div>`).join('') + `
+    <div style="padding-top:0.875rem;text-align:center">
+      <button class="btn-ghost" style="font-size:0.75rem;padding:0.35rem 1rem" onclick="showHRForm('${logDate}')">+ Log HR from Apple Fitness</button>
+    </div>`;
 
-  if (weekEntry) {
-    const times = HR_ZONES.map(z => parseMMSS(weekEntry[z.key]));
-    el.innerHTML = zoneRows(times) + `
+  // ── Selected day view ──────────────────────────────────
+  if (selectedDate) {
+    const entry = manualHR[selectedDate];
+    const d = new Date(selectedDate + 'T00:00:00');
+    const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+    badge.textContent = label;
+
+    if (entry) {
+      const times = HR_ZONES.map(z => parseMMSS(entry[z.key]));
+      el.innerHTML = zoneRows(times) + `
+        <div style="padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
+            ${entry.avgHr ? entry.avgHr+' bpm avg · ' : ''}Apple Fitness
+          </span>
+          <button class="btn-ghost" style="font-size:0.7rem;padding:0.2rem 0.6rem" onclick="showHRForm('${selectedDate}')">Edit</button>
+        </div>`;
+    } else {
+      el.innerHTML = emptyRows(selectedDate);
+    }
+    return;
+  }
+
+  // ── Weekly summary view ────────────────────────────────
+  badge.textContent = 'This week';
+
+  // Aggregate all logged HR entries across the week
+  let totalTimes = [0, 0, 0, 0, 0];
+  let totalAvgHr = 0, hrCount = 0, entriesFound = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const entry = manualHR[isoDate(d)];
+    if (entry) {
+      entriesFound++;
+      HR_ZONES.forEach((z, zi) => { totalTimes[zi] += parseMMSS(entry[z.key]); });
+      if (entry.avgHr) { totalAvgHr += parseFloat(entry.avgHr); hrCount++; }
+    }
+  }
+
+  if (entriesFound > 0) {
+    const avgHr = hrCount ? Math.round(totalAvgHr / hrCount) : null;
+    el.innerHTML = zoneRows(totalTimes) + `
       <div style="padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center">
         <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
-          ${weekEntry.avgHr ? weekEntry.avgHr+' bpm avg · ' : ''}Apple Fitness · ${weekEntryDate}
+          ${avgHr ? avgHr+' bpm avg · ' : ''}Apple Fitness · ${entriesFound} run${entriesFound>1?'s':''}
         </span>
-        <button class="btn-ghost" style="font-size:0.7rem;padding:0.2rem 0.6rem" onclick="showHRForm('${weekEntryDate}')">Edit</button>
+        <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">tap a day row</span>
       </div>`;
     return;
   }
 
-  // No manual entry — always show Log button (Strava HR flag doesn't give zone data)
+  // No entries — show log button defaulting to most recent activity date
   const defaultDate = weekActs.length ? isoDate(new Date(weekActs[0].start_date_local)) : isoDate(new Date());
-  el.innerHTML = emptyRows + `
-    <div style="padding-top:0.875rem;text-align:center">
-      <button class="btn-ghost" style="font-size:0.75rem;padding:0.35rem 1rem" onclick="showHRForm('${defaultDate}')">+ Log HR from Apple Fitness</button>
-    </div>`;
+  el.innerHTML = emptyRows(defaultDate);
 }
 
 function showHRForm(date) {
