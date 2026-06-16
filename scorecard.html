@@ -448,16 +448,16 @@ async function selectDay(dateKey) {
   renderDayTable(start, weekActs, getPlannedWorkouts());
   renderHRZones(weekActs);
 
-  // If selecting a day with a Strava HR activity, fetch zone data
+  // Fetch Strava zones for any run on the selected day (don't require has_heartrate flag)
   if (selectedDate) {
     const act = weekActs.find(a =>
-      isoDate(new Date(a.start_date_local)) === selectedDate && a.has_heartrate);
-    if (act) {
+      isoDate(new Date(a.start_date_local)) === selectedDate && a.type === 'Run');
+    if (act && stravaZonesCache[act.id] === undefined) {
       document.getElementById('hr-zones').insertAdjacentHTML('beforeend',
         `<div id="hr-loading" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);padding-top:0.5rem">fetching Strava zones…</div>`);
-      const data = await fetchStravaZones(act.id);
+      await fetchStravaZones(act.id);
       document.getElementById('hr-loading')?.remove();
-      if (data) renderHRZones(weekActs); // re-render with zone data now cached
+      renderHRZones(weekActs);
     }
   }
 }
@@ -551,14 +551,15 @@ function renderHRZones(weekActs) {
 
     // Check Strava zones cache first
     const dayAct = weekActs.find(a =>
-      isoDate(new Date(a.start_date_local)) === selectedDate && a.has_heartrate);
+      isoDate(new Date(a.start_date_local)) === selectedDate && a.type === 'Run');
     const stravaData = dayAct ? stravaZonesCache[dayAct.id] : undefined;
 
-    if (stravaData?.heart_rate?.zones?.length) {
-      const sz = stravaData.heart_rate.zones;
-      // Strava returns up to 5 zones; map by index
-      const times = HR_ZONES.map((_, i) => sz[i]?.time || 0);
-      const avgHr = dayAct.average_heartrate ? Math.round(dayAct.average_heartrate) : null;
+    // Strava zones API returns an array; find the heartrate entry; buckets are in distribution_buckets
+    const hrEntry = Array.isArray(stravaData) ? stravaData.find(z => z.type === 'heartrate') : null;
+    const buckets = hrEntry?.distribution_buckets;
+    if (buckets?.length) {
+      const times = HR_ZONES.map((_, i) => buckets[i]?.time || 0);
+      const avgHr = dayAct?.average_heartrate ? Math.round(dayAct.average_heartrate) : null;
       el.innerHTML = zoneRows(times) + `
         <div style="padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center">
           <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">
